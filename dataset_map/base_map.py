@@ -1,4 +1,7 @@
-def pre_process(example_proto, training):
+import tensorflow as tf
+
+
+def dataset_map(example_proto, training):
     features = {"image/encoded": tf.FixedLenFeature((), tf.string, default_value=""),
                 "image/class/label": tf.FixedLenFeature((), tf.int64, default_value=0),
                 'image/height': tf.FixedLenFeature((), tf.int64, default_value=0),

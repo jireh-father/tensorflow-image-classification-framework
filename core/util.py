@@ -6,6 +6,8 @@ import tensorflow as tf
 
 def get_func(file_path, func_name):
     try:
+        # print(":" + file_path + ":")
+        # module = importlib.import_module("trainer.base_trainer")
         module = importlib.import_module(file_path)
         return getattr(module, func_name)
 
@@ -13,6 +15,17 @@ def get_func(file_path, func_name):
         print("There is no the %s file." % file_path)
     except AttributeError:
         print("There is no the %s function in %s file." % (func_name, file_path))
+    return None
+
+
+def get_module(file_path):
+    try:
+        # print(":" + file_path + ":")
+        # module = importlib.import_module("trainer.base_trainer")
+        return importlib.import_module(file_path)
+
+    except ImportError:
+        print("There is no the %s file." % file_path)
     return None
 
 

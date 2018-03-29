@@ -54,7 +54,7 @@ def configure_optimizer(learning_rate, conf):
 
 
 def configure_learning_rate(global_step, config):
-    decay_steps = int(config.num_samples_per_epoch / config.batch_size *
+    decay_steps = int(config.num_train_sample / config.batch_size *
                       config.num_epochs_per_decay)
 
     if config.learning_rate_decay_type == 'exponential':

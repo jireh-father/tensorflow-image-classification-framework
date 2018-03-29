@@ -135,5 +135,4 @@ def alexnet_v2(inputs,
 
 
 alexnet_v2.default_image_size = 224
-alexnet_v2.default_logit_layer_name = 'alexnet_v2/fc8'
-alexnet_v2.default_last_conv_layer_name = 'alexnet_v2/conv5'
+alexnet_v2.default_last_conv_name = 'alexnet_v2/conv5'

@@ -2,8 +2,12 @@ import tensorflow as tf
 from core import optimizer
 
 
-def build_cost(logits, labels, config):
-    cost_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits))
+def build_cost(logits, labels, global_step, config):
+    cost_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits),
+                             name="softmax_cross_entropy")
+    # todo : tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    # loss = tf.add(loss, tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))
+
     if config.use_regularizer:
         weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
         regularizer = 0
@@ -11,8 +15,6 @@ def build_cost(logits, labels, config):
             regularizer += tf.nn.l2_loss(weight)
         regularizer *= config.weight_decay
         cost_op += regularizer
-    tf.summary.scalar('cost', cost_op)
-    global_step = tf.Variable(0, trainable=False)
     learning_rate = optimizer.configure_learning_rate(global_step, config)
     opt = optimizer.configure_optimizer(learning_rate, config)
     train_op = opt.minimize(cost_op, global_step=global_step)

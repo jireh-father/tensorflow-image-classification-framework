@@ -27,11 +27,6 @@ from defined.model import mobilenet_v1
 from defined.model import resnet_v1
 from defined.model import resnet_v2
 from defined.model import vgg
-from defined.model import nasnet
-from defined.model import conv
-from defined.model import deconv
-from defined.model import ed
-from defined.model import deconv_conv
 from defined.model import mean_featuremap_cnn
 
 slim = tf.contrib.slim
@@ -59,13 +54,6 @@ networks_map = {'alexnet_v2': alexnet.alexnet_v2,
                 'mobilenet_v1_075': mobilenet_v1.mobilenet_v1_075,
                 'mobilenet_v1_050': mobilenet_v1.mobilenet_v1_050,
                 'mobilenet_v1_025': mobilenet_v1.mobilenet_v1_025,
-                'nasnet_cifar': nasnet.build_nasnet_cifar,
-                'nasnet_mobile': nasnet.build_nasnet_mobile,
-                'nasnet_large': nasnet.build_nasnet_large,
-                'conv': conv.build_model,
-                'deconv': deconv.build_model,
-                'ed': ed.build_model,
-                'deconv_conv': deconv_conv.build_model,
                 'mean_fm': mean_featuremap_cnn.build_model,
                 'alexnet_ld': alexnet_ld.alexnet_v2,
                 }
@@ -94,9 +82,6 @@ arg_scopes_map = {'alexnet_v2': alexnet.alexnet_v2_arg_scope,
                   'mobilenet_v1_075': mobilenet_v1.mobilenet_v1_arg_scope,
                   'mobilenet_v1_050': mobilenet_v1.mobilenet_v1_arg_scope,
                   'mobilenet_v1_025': mobilenet_v1.mobilenet_v1_arg_scope,
-                  'nasnet_cifar': nasnet.nasnet_cifar_arg_scope,
-                  'nasnet_mobile': nasnet.nasnet_mobile_arg_scope,
-                  'nasnet_large': nasnet.nasnet_large_arg_scope,
                   'alexnet_ld': alexnet_ld.alexnet_v2_arg_scope,
                   }
 
@@ -147,9 +132,7 @@ def get_network_fn(name, num_classes, weight_decay=0.0, is_training=False):
 
     if hasattr(func, 'default_image_size'):
         network_fn.default_image_size = func.default_image_size
-    if hasattr(func, 'default_logit_layer_name'):
-        network_fn.default_logit_layer_name = func.default_logit_layer_name
-    if hasattr(func, 'default_last_conv_layer_name'):
-        network_fn.default_last_conv_layer_name = func.default_last_conv_layer_name
+    if hasattr(func, 'default_last_conv_name'):
+        network_fn.default_last_conv_name = func.default_last_conv_name
 
     return network_fn

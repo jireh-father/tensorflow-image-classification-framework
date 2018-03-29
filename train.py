@@ -1,41 +1,50 @@
 import tensorflow as tf
-from core import util, init
+from core import util
 import os
 
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "F:\data\mnist", "dataset_dir")
-tf.app.flags.DEFINE_string('model_name', "alexnet_v2", "model name")
-tf.app.flags.DEFINE_integer('batch_size', 32, "batch_size")
+tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
+tf.app.flags.DEFINE_integer('batch_size', 128, "batch_size")
+tf.app.flags.DEFINE_integer('validation_batch_size', 512, "validation_batch_size")
 tf.app.flags.DEFINE_integer('epoch', 10, "epoch")
 tf.app.flags.DEFINE_string('train_name', "train", "train dataset file name")
 tf.app.flags.DEFINE_string('validation_name', "validation", "validation dataset file name")
 tf.app.flags.DEFINE_boolean('train', True, "trains")
-tf.app.flags.DEFINE_boolean('eval', True, "eval")
+tf.app.flags.DEFINE_boolean('validation', True, "validation")
+tf.app.flags.DEFINE_boolean('use_summary', True, "use_summary")
 tf.app.flags.DEFINE_float('train_fraction', 0.9, "train_fraction")
-tf.app.flags.DEFINE_integer('num_channel', 3, "num channel")
+tf.app.flags.DEFINE_integer('num_channel', 1, "num channel")
 tf.app.flags.DEFINE_integer('num_dataset_parallel', 4, "num_dataset_parallel")
+tf.app.flags.DEFINE_integer('num_input_summary', 10, "num input summary")
 tf.app.flags.DEFINE_string('log_dir',
                            os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
                            "save dir")
-tf.app.flags.DEFINE_integer('vis_epoch', 1, "vis_epoch")
-tf.app.flags.DEFINE_integer('num_vis_steps', 10, "num_vis_steps")
-tf.app.flags.DEFINE_integer('num_cam', 10, "num_cam")
-tf.app.flags.DEFINE_integer('num_save_interval', 1, "num_save_interval")
+tf.app.flags.DEFINE_float('use_train_cam', True, "use_train_cam")
+tf.app.flags.DEFINE_float('use_validation_cam', True, "use_validation_cam")
+tf.app.flags.DEFINE_float('use_bounding_box_visualization', True, "use_bounding_box_visualization")
+tf.app.flags.DEFINE_integer('num_train_cam_epoch', 10, "num_train_cam_epoch")
+tf.app.flags.DEFINE_integer('num_validation_cam_epoch', 10, "num_validation_cam_epoch")
+tf.app.flags.DEFINE_float('use_train_embed_visualization', True, "use_train_embed_visualization")
+tf.app.flags.DEFINE_float('use_validation_embed_visualization', True, "use_validation_embed_visualization")
+tf.app.flags.DEFINE_integer('train_embed_visualization_interval', 1, "train_embed_visualization_interval epoch")
+tf.app.flags.DEFINE_integer('validation_embed_visualization_interval', 1,
+                            "validation_embed_visualization_interval epoch")
+tf.app.flags.DEFINE_integer('num_train_embed_epoch', 200, "num_train_embed_epoch")
+tf.app.flags.DEFINE_integer('num_validation_embed_epoch', 200, "num_validation_embed_epoch")
+tf.app.flags.DEFINE_integer('save_interval', 1, "num_save_interval")
 tf.app.flags.DEFINE_integer('summary_interval', 10, "summary_interval")
 tf.app.flags.DEFINE_integer('summary_images', 32, "summary_images")
-tf.app.flags.DEFINE_integer('use_shuffle', True, "use shuffle")
-tf.app.flags.DEFINE_integer('shuffle_buffer', 1000, "shuffle_buffer")
-tf.app.flags.DEFINE_boolean('use_predict_of_test_for_embed_vis', True, "use_predict_of_test_for_embed_vis")
+tf.app.flags.DEFINE_integer('use_train_shuffle', True, "use shuffle")
+tf.app.flags.DEFINE_integer('buffer_size', 1000, "buffer_size")
+tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', True, "use_prediction_for_embed_visualization")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
 tf.app.flags.DEFINE_boolean('use_regularizer', False, "use_regularizer")
-
 tf.app.flags.DEFINE_integer('input_size', None, "input_size")
-
 tf.app.flags.DEFINE_string('trainer', None, "trainer file name in the trainer directory")
-
 ######################
 # Optimization Flags #
 ######################
@@ -131,7 +140,9 @@ if not FLAGS.trainer:
 else:
     trainer_name = FLAGS.trainer
 trainer_path = 'trainer.%s' % trainer_name
-train_func = util.get_func(trainer_path, "train")
+# import importlib
+#
+# module = importlib.import_module("trainer.base_trainer")
+train_func = util.get_func(trainer_path, "main")
 if train_func:
-    init.init(FLAGS)
     train_func(FLAGS)

@@ -5,7 +5,7 @@ bn_decay = 0.997
 bn_epsilon = 1e-5
 
 
-def build_model(inputs, num_classes, is_training, model_conf = None):
+def build_model(inputs, num_classes, is_training, model_conf=None):
     endpoints = {}
     filters = 100
     kernel_size = 5
@@ -38,11 +38,8 @@ def build_model(inputs, num_classes, is_training, model_conf = None):
     logits = tf.layers.dense(fc, num_classes)
     endpoints["logits"] = logits
 
-
     return logits, endpoints
 
 
-
 build_model.default_image_size = 90
-build_model.default_logit_layer_name="logits"
-build_model.default_last_conv_layer_name="last_conv"
+build_model.default_last_conv_name = "last_conv"
