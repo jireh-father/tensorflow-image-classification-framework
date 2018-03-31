@@ -3,7 +3,7 @@ from core import optimizer
 
 
 def build_cost(logits, labels, global_step, config):
-    cost_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits),
+    cost_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits),
                              name="softmax_cross_entropy")
     # todo : tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     # loss = tf.add(loss, tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))

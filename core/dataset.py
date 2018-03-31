@@ -1,7 +1,7 @@
 import glob
 import os
 import tensorflow as tf
-from defined.preprocessing import preprocessing_factory
+from slim.preprocessing import preprocessing_factory
 
 
 class Dataset(object):

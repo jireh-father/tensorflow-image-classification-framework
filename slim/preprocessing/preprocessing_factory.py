@@ -14,10 +14,10 @@
 # ==============================================================================
 """Contains a factory for building various models."""
 
-from defined.preprocessing import inception_preprocessing
-from defined.preprocessing import lenet_preprocessing
-from defined.preprocessing import vgg_preprocessing
-from defined.preprocessing import cifarnet_preprocessing
+from slim.preprocessing import inception_preprocessing
+from slim.preprocessing import lenet_preprocessing
+from slim.preprocessing import vgg_preprocessing
+from slim.preprocessing import cifarnet_preprocessing
 
 
 def get_preprocessing(name, is_training=False):

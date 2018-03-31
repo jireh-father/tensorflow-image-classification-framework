@@ -1,14 +1,18 @@
 import tensorflow as tf
 from core import util
-import os
+import os, json
+from datetime import datetime
 
 FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_boolean('remove_original_images', False, "remove_original_images")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
-tf.app.flags.DEFINE_string('dataset_dir', "F:\data\mnist", "dataset_dir")
+tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
 tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
-tf.app.flags.DEFINE_integer('batch_size', 128, "batch_size")
-tf.app.flags.DEFINE_integer('validation_batch_size', 512, "validation_batch_size")
-tf.app.flags.DEFINE_integer('epoch', 10, "epoch")
+tf.app.flags.DEFINE_integer('batch_size', 64, "batch_size")
+tf.app.flags.DEFINE_integer('validation_batch_size', 256, "validation_batch_size")
+tf.app.flags.DEFINE_integer('epoch', 3, "epoch")
+tf.app.flags.DEFINE_integer('total_steps', None, "total_steps")
+tf.app.flags.DEFINE_integer('steps_per_epoch', 3, "steps_per_epoch")
 tf.app.flags.DEFINE_string('train_name', "train", "train dataset file name")
 tf.app.flags.DEFINE_string('validation_name', "validation", "validation dataset file name")
 tf.app.flags.DEFINE_boolean('train', True, "trains")
@@ -21,13 +25,13 @@ tf.app.flags.DEFINE_integer('num_input_summary', 10, "num input summary")
 tf.app.flags.DEFINE_string('log_dir',
                            os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
                            "save dir")
-tf.app.flags.DEFINE_float('use_train_cam', True, "use_train_cam")
-tf.app.flags.DEFINE_float('use_validation_cam', True, "use_validation_cam")
-tf.app.flags.DEFINE_float('use_bounding_box_visualization', True, "use_bounding_box_visualization")
+tf.app.flags.DEFINE_boolean('use_train_cam', True, "use_train_cam")
+tf.app.flags.DEFINE_boolean('use_validation_cam', True, "use_validation_cam")
+tf.app.flags.DEFINE_boolean('use_bounding_box_visualization', True, "use_bounding_box_visualization")
 tf.app.flags.DEFINE_integer('num_train_cam_epoch', 10, "num_train_cam_epoch")
 tf.app.flags.DEFINE_integer('num_validation_cam_epoch', 10, "num_validation_cam_epoch")
-tf.app.flags.DEFINE_float('use_train_embed_visualization', True, "use_train_embed_visualization")
-tf.app.flags.DEFINE_float('use_validation_embed_visualization', True, "use_validation_embed_visualization")
+tf.app.flags.DEFINE_boolean('use_train_embed_visualization', True, "use_train_embed_visualization")
+tf.app.flags.DEFINE_boolean('use_validation_embed_visualization', True, "use_validation_embed_visualization")
 tf.app.flags.DEFINE_integer('train_embed_visualization_interval', 1, "train_embed_visualization_interval epoch")
 tf.app.flags.DEFINE_integer('validation_embed_visualization_interval', 1,
                             "validation_embed_visualization_interval epoch")
@@ -36,7 +40,7 @@ tf.app.flags.DEFINE_integer('num_validation_embed_epoch', 200, "num_validation_e
 tf.app.flags.DEFINE_integer('save_interval', 1, "num_save_interval")
 tf.app.flags.DEFINE_integer('summary_interval', 10, "summary_interval")
 tf.app.flags.DEFINE_integer('summary_images', 32, "summary_images")
-tf.app.flags.DEFINE_integer('use_train_shuffle', True, "use shuffle")
+tf.app.flags.DEFINE_boolean('use_train_shuffle', True, "use shuffle")
 tf.app.flags.DEFINE_integer('buffer_size', 1000, "buffer_size")
 tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', True, "use_prediction_for_embed_visualization")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
@@ -135,14 +139,40 @@ tf.app.flags.DEFINE_float(
 
 tf.app.flags.DEFINE_boolean('polynomial_learning_rate_cycle', True, "Whether to cycle of polynomial learning rate")
 
-if not FLAGS.trainer:
-    trainer_name = "base_trainer"
+
+def begin_trainer(flags):
+    if not flags.trainer:
+        trainer_name = "base_trainer"
+    else:
+        trainer_name = flags.trainer
+    trainer_path = 'trainer.%s' % trainer_name
+    train_func = util.get_func(trainer_path, "main")
+    if train_func:
+        train_func(flags)
+
+
+def make_train_key(flags):
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
+    return "checkpoint_%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
+        flags.dataset_name, flags.model_name, flags.optimizer, flags.batch_size, flags.epoch, now)
+
+
+FLAGS.mark_as_parsed()
+try:
+    schedule_json = json.load(open("config.json"))
+except json.decoder.JSONDecodeError:
+    schedule_json = None
+if not schedule_json:
+    begin_trainer(FLAGS)
 else:
-    trainer_name = FLAGS.trainer
-trainer_path = 'trainer.%s' % trainer_name
-# import importlib
-#
-# module = importlib.import_module("trainer.base_trainer")
-train_func = util.get_func(trainer_path, "main")
-if train_func:
-    train_func(FLAGS)
+    backup = {}
+    for config in schedule_json:
+        for key in config:
+            backup[key] = FLAGS.__getattr__(key)
+            FLAGS.__setattr__(key, config[key])
+        train_key = make_train_key(FLAGS)
+        FLAGS.log_dir = train_key
+        begin_trainer(FLAGS)
+        for key in backup:
+            FLAGS.__setattr__(key, backup[key])
+        backup = {}

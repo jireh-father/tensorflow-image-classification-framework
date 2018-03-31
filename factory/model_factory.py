@@ -1,4 +1,4 @@
-from defined.model import model_factory
+from slim.model import model_factory
 from core import util
 import tensorflow as tf
 

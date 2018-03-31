@@ -18,16 +18,16 @@ import functools
 
 import tensorflow as tf
 
-from defined.model import alexnet
-from defined.model import alexnet_ld
-from defined.model import cifarnet
-from defined.model import inception
-from defined.model import lenet
-from defined.model import mobilenet_v1
-from defined.model import resnet_v1
-from defined.model import resnet_v2
-from defined.model import vgg
-from defined.model import mean_featuremap_cnn
+from slim.model import alexnet
+from slim.model import alexnet_ld
+from slim.model import cifarnet
+from slim.model import inception
+from slim.model import lenet
+from slim.model import mobilenet_v1
+from slim.model import resnet_v1
+from slim.model import resnet_v2
+from slim.model import vgg
+from slim.model import mean_featuremap_cnn
 
 slim = tf.contrib.slim
 

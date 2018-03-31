@@ -1,7 +1,7 @@
-from factory import model_factory
+from factory import model_factory, dataset_factory
 from core.dataset import Dataset
 import tensorflow as tf
-from core import util
+from core import util, tfrecorder_builder
 # from preprocessing import preprocessing_factory
 import os, glob
 from datetime import datetime
@@ -54,6 +54,8 @@ class Trainer:
         self.avg_accuracy_summary = None
 
     def run(self):
+        self.make_dataset()
+
         self.init_config()
 
         self.init_model()
@@ -66,9 +68,10 @@ class Trainer:
 
         self.init_dataset()
 
+        stop = False
         for epoch in range(self.config.epoch):
             if self.config.train:
-                self.train(epoch)
+                stop = self.train(epoch)
 
             if self.config.validation:
                 self.validate(epoch)
@@ -82,7 +85,8 @@ class Trainer:
 
                 if not self.config.train:
                     break
-
+            if self.config.train and stop:
+                break
         if self.config.validation and self.config.use_validation_embed_visualization and self.validation_embed_dataset is not None:
             embedding.write_embedding(self.validation_projector_config, self.sess, self.validation_embed_dataset,
                                       embedding_path=self.validation_embed_dir,
@@ -90,6 +94,19 @@ class Trainer:
                                       labels=self.validation_embed_labels)
 
         self.sess.close()
+        tf.reset_default_graph()
+
+    def make_dataset(self):
+        if self.config.dataset_name in dataset_factory.dataset_list:
+            dataset_factory.download_and_make_tfrecord(self.config)
+        else:
+            result = tfrecorder_builder.make_tfrecord(self.config.dataset_name, self.config.dataset_dir,
+                                                      self.config.train_fraction,
+                                                      self.config.num_channel,
+                                                      self.config.num_dataset_parallel,
+                                                      self.config.remove_original_images)
+            if not result:
+                raise Exception("failed to make tfrecord files.")
 
     def summary(self):
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -119,23 +136,38 @@ class Trainer:
 
     def init_config(self):
         label_path = os.path.join(self.config.dataset_dir, "labels.txt")
+        num_class = util.count_label(label_path)
+        try:
+            tf.app.flags.DEFINE_integer('num_class', num_class, 'num_class')
+        except Exception:
+            self.config.num_class = num_class
 
-        self.config.num_class = util.count_label(label_path)
         if not self.config.num_class:
             raise Exception("Check the label file : %s" % label_path)
 
         if self.config.train:
-            num_train_sample = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir)
-            if not num_train_sample:
+            train_filenames = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir)
+            if not train_filenames:
                 raise Exception("There is no tfrecord files")
-            self.config.num_train_sample = util.count_records(num_train_sample)
+            num_train_sample = util.count_records(train_filenames)
+
+            try:
+                tf.app.flags.DEFINE_integer('num_train_sample', num_train_sample, 'num_train_sample')
+            except Exception:
+                self.config.num_train_sample = num_train_sample
 
         if self.config.validation:
-            num_validation_sample = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir,
-                                                                'validation')
-            if not num_validation_sample:
+            validation_filenames = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir,
+                                                               'validation')
+            if not validation_filenames:
                 raise Exception("There is no tfrecord files")
-            self.config.num_validation_sample = util.count_records(num_validation_sample)
+
+            num_validation_sample = util.count_records(validation_filenames)
+
+            try:
+                tf.app.flags.DEFINE_integer('num_validation_sample', num_validation_sample, 'num_validation_sample')
+            except Exception:
+                self.config.num_validation_sample = num_validation_sample
 
     def init_model(self):
         model = model_factory.build_model(self.config)
@@ -213,6 +245,10 @@ class Trainer:
 
                 if epoch % self.config.train_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx)
+                if self.config.total_steps and global_step >= self.config.total_steps:
+                    return False
+                if self.config.steps_per_epoch and step >= self.config.steps_per_epoch:
+                    break
             except tf.errors.OutOfRangeError:
                 break
         if step > 0:
@@ -238,6 +274,7 @@ class Trainer:
                                           image_size=self.config.input_size, channel=self.config.num_channel,
                                           labels=self.train_embed_labels)
                 self.train_projector_config = projector.ProjectorConfig()
+        return True
 
     def validate(self, epoch):
         self.validation_dataset.init()

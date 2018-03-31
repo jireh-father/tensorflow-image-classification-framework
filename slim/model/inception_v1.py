@@ -16,7 +16,7 @@
 
 import tensorflow as tf
 
-from defined.model import inception_utils
+from slim.model import inception_utils
 
 slim = tf.contrib.slim
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
@@ -27,7 +27,7 @@ def inception_v1_base(inputs,
                       scope='InceptionV1'):
     """Defines the Inception V1 base architecture.
 
-    This architecture is defined in:
+    This architecture is slim in:
       Going deeper with convolutions
       Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott Reed,
       Dragomir Anguelov, Dumitru Erhan, Vincent Vanhoucke, Andrew Rabinovich.
@@ -261,7 +261,7 @@ def inception_v1(inputs,
                  global_pool=False):
     """Defines the Inception V1 architecture.
 
-    This architecture is defined in:
+    This architecture is slim in:
 
       Going deeper with convolutions
       Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott Reed,
