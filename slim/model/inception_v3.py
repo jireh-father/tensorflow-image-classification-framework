@@ -72,7 +72,7 @@ def inception_v3_base(inputs,
       depth_multiplier: Float multiplier for the depth (number of channels)
         for all convolution ops. The value must be greater than zero. Typical
         usage will be to set this value in (0, 1) to reduce the number of
-        parameters or computation cost of the model.
+        parameters or computation loss of the model.
       scope: Optional variable_scope.
 
     Returns:
@@ -451,7 +451,7 @@ def inception_v3(inputs,
       depth_multiplier: Float multiplier for the depth (number of channels)
         for all convolution ops. The value must be greater than zero. Typical
         usage will be to set this value in (0, 1) to reduce the number of
-        parameters or computation cost of the model.
+        parameters or computation loss of the model.
       prediction_fn: a function to get predictions out of logits.
       spatial_squeeze: if True, logits is of shape [B, C], if false logits is of
           shape [B, 1, 1, C], where B is batch_size and C is number of classes.

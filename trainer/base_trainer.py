@@ -177,7 +177,7 @@ class Trainer:
 
         self.inputs, self.labels, self.logits, self.end_points, self.is_training, self.global_step, default_last_conv_name, ops = model
         if ops:
-            self.loss_op = ops["cost"]
+            self.loss_op = ops["loss"]
             self.train_op = ops["train"]
             self.accuracy_op = ops["accuracy"]
             self.learning_rate = ops["learning_rate"]
@@ -246,7 +246,7 @@ class Trainer:
                 if epoch % self.config.train_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx)
                 if self.config.total_steps and global_step >= self.config.total_steps:
-                    return False
+                    return True
                 if self.config.steps_per_epoch and step >= self.config.steps_per_epoch:
                     break
             except tf.errors.OutOfRangeError:
@@ -274,7 +274,7 @@ class Trainer:
                                           image_size=self.config.input_size, channel=self.config.num_channel,
                                           labels=self.train_embed_labels)
                 self.train_projector_config = projector.ProjectorConfig()
-        return True
+        return False
 
     def validate(self, epoch):
         self.validation_dataset.init()

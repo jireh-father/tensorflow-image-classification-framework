@@ -4,13 +4,14 @@ import os, json
 from datetime import datetime
 
 FLAGS = tf.app.flags.FLAGS
-
+tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
 tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
+tf.app.flags.DEFINE_string('cost_file', "softmax_cross_entropy", "cost_file")
 tf.app.flags.DEFINE_integer('batch_size', 64, "batch_size")
 tf.app.flags.DEFINE_integer('validation_batch_size', 256, "validation_batch_size")
-tf.app.flags.DEFINE_integer('epoch', 3, "epoch")
+tf.app.flags.DEFINE_integer('epoch', 1, "epoch")
 tf.app.flags.DEFINE_integer('total_steps', None, "total_steps")
 tf.app.flags.DEFINE_integer('steps_per_epoch', None, "steps_per_epoch")
 tf.app.flags.DEFINE_string('train_name', "train", "train dataset file name")
@@ -47,7 +48,7 @@ tf.app.flags.DEFINE_boolean('use_train_shuffle', True, "use shuffle")
 tf.app.flags.DEFINE_integer('buffer_size', 1000, "buffer_size")
 tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', True, "use_prediction_for_embed_visualization")
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
-tf.app.flags.DEFINE_boolean('use_regularizer', False, "use_regularizer")
+tf.app.flags.DEFINE_boolean('use_regularizer', True, "use_regularizer")
 tf.app.flags.DEFINE_integer('input_size', None, "input_size")
 tf.app.flags.DEFINE_string('trainer', None, "trainer file name in the trainer directory")
 ######################
@@ -152,28 +153,44 @@ def begin_trainer(flags):
         train_func(flags)
 
 
-def make_train_key(flags):
+def make_train_key(base_dir, flags):
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    return "checkpoint_%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
-        flags.dataset_name, flags.model_name, flags.optimizer, flags.batch_size, flags.epoch, now)
+    return "%s/%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
+        base_dir, flags.dataset_name, flags.model_name, flags.optimizer, flags.batch_size, flags.epoch, now)
 
 
-FLAGS.mark_as_parsed()
-try:
-    schedule_json = json.load(open("config.json"))
-except json.decoder.JSONDecodeError:
-    schedule_json = None
+if hasattr(FLAGS, "mark_as_parsed"):
+    FLAGS.mark_as_parsed()
+
+schedule_json = None
+if os.path.isfile(FLAGS.config):
+    try:
+        schedule_json = json.load(open(FLAGS.config))
+    except json.decoder.JSONDecodeError:
+        schedule_json = None
 if not schedule_json:
+    if not os.path.isabs(FLAGS.log_dir):
+        log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
+        FLAGS.__setattr__("log_dir", log_dir)
     begin_trainer(FLAGS)
 else:
     backup = {}
+    start_time = datetime.now().strftime('%Y%m%d%H%M%S')
     for config in schedule_json:
         for key in config:
             backup[key] = FLAGS.__getattr__(key)
             FLAGS.__setattr__(key, config[key])
-        train_key = make_train_key(FLAGS)
-        FLAGS.log_dir = train_key
+        backup["log_dir"] = FLAGS.log_dir
+        if os.path.isabs(FLAGS.log_dir):
+            base_dir = FLAGS.log_dir
+        else:
+            base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint_%s" % start_time)
+        train_key = make_train_key(base_dir, FLAGS)
+        if not os.path.isdir(train_key):
+            os.makedirs(train_key)
+        FLAGS.__setattr__("log_dir", train_key)
         begin_trainer(FLAGS)
         for key in backup:
             FLAGS.__setattr__(key, backup[key])
+        FLAGS.__setattr__("log_dir", backup["log_dir"])
         backup = {}

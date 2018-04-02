@@ -161,7 +161,7 @@ def mobilenet_v1_base(inputs,
       depth_multiplier: Float multiplier for the depth (number of channels)
         for all convolution ops. The value must be greater than zero. Typical
         usage will be to set this value in (0, 1) to reduce the number of
-        parameters or computation cost of the model.
+        parameters or computation loss of the model.
       conv_defs: A list of ConvDef namedtuples specifying the net architecture.
       output_stride: An integer that specifies the requested ratio of input to
         output spatial resolution. If not None, then we invoke atrous convolution
@@ -290,7 +290,7 @@ def mobilenet_v1(inputs,
       depth_multiplier: Float multiplier for the depth (number of channels)
         for all convolution ops. The value must be greater than zero. Typical
         usage will be to set this value in (0, 1) to reduce the number of
-        parameters or computation cost of the model.
+        parameters or computation loss of the model.
       conv_defs: A list of ConvDef namedtuples specifying the net architecture.
       prediction_fn: a function to get predictions out of logits.
       spatial_squeeze: if True, logits is of shape is [B, C], if false logits is

@@ -1,0 +1,9 @@
+[
+  {
+    "model_name": "base_model",
+    "steps_per_epoch": 25
+  },
+  {
+    "model_name": "alexnet_v2"
+  }
+]

@@ -48,12 +48,12 @@ def build_model(config):
             logits = model_result
             end_points = None
 
-    if hasattr(config, 'cost_func'):
-        cost_func = config.cost_func
+    if hasattr(config, 'cost_file'):
+        cost_file = config.cost_file
     else:
-        cost_func = "softmax_cross_entropy"
+        cost_file = "softmax_cross_entropy"
 
-    cost_f = util.get_func('cost.%s' % cost_func, "build_cost")
+    cost_f = util.get_func('model.loss.%s' % cost_file, "build_cost")
     ops = None
     if cost_f:
         ops = cost_f(logits, labels, global_step, config)
