@@ -8,7 +8,10 @@ def get_func(file_path, func_name):
     try:
         # print(":" + file_path + ":")
         # module = importlib.import_module("trainer.base_trainer")
-        module = importlib.import_module(file_path)
+        module = __import__(file_path + "", globals(), locals(), [func_name])
+        print(dir(module))
+        print(module)
+        # module = importlib.import_module(file_path)
         return getattr(module, func_name)
 
     except ImportError:
@@ -22,7 +25,8 @@ def get_module(file_path):
     try:
         # print(":" + file_path + ":")
         # module = importlib.import_module("trainer.base_trainer")
-        return importlib.import_module(file_path)
+        return __import__(file_path)
+        # return importlib.import_module(file_path)
 
     except ImportError:
         print("There is no the %s file." % file_path)

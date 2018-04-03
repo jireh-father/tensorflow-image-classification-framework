@@ -34,8 +34,13 @@ def build_model(config):
         model_module = util.get_module('model.%s' % config.model_name)
         if not config.input_size:
             config.input_size = getattr(model_module, "input_size", 224)
+            print(config.input_size)
+        # todo!!
         if hasattr(model_module, "default_last_conv_name"):
             default_last_conv_name = getattr(model_module, "default_last_conv_name")
+            print(default_last_conv_name)
+        print("gogo")
+        sys.exit()
 
         inputs = tf.placeholder(tf.float32, shape=[None, config.input_size, config.input_size, config.num_channel],
                                 name="inputs")
