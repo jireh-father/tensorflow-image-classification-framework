@@ -100,13 +100,11 @@ class Trainer:
         if self.config.dataset_name in dataset_factory.dataset_list:
             dataset_factory.download_and_make_tfrecord(self.config)
         else:
-            result = tfrecorder_builder.make_tfrecord(self.config.dataset_name, self.config.dataset_dir,
-                                                      self.config.train_fraction,
-                                                      self.config.num_channel,
-                                                      self.config.num_dataset_parallel,
-                                                      self.config.remove_original_images)
-            if not result:
-                raise Exception("failed to make tfrecord files.")
+            tfrecorder_builder.make_tfrecord(self.config.dataset_name, self.config.dataset_dir,
+                                             self.config.train_fraction,
+                                             self.config.num_channel,
+                                             self.config.num_dataset_parallel,
+                                             self.config.remove_original_images)
 
     def summary(self):
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
