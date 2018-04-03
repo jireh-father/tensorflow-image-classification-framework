@@ -7,9 +7,9 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
-tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
-tf.app.flags.DEFINE_string('cost_file', "softmax_cross_entropy", "cost_file")
-tf.app.flags.DEFINE_integer('batch_size', 64, "batch_size")
+tf.app.flags.DEFINE_string('model_name', "alexnet_v2", "model name")
+tf.app.flags.DEFINE_string('loss_file', "softmax_cross_entropy", "loss_file")
+tf.app.flags.DEFINE_integer('batch_size', 128, "batch_size")
 tf.app.flags.DEFINE_integer('validation_batch_size', 256, "validation_batch_size")
 tf.app.flags.DEFINE_integer('epoch', 1, "epoch")
 tf.app.flags.DEFINE_integer('total_steps', None, "total_steps")
@@ -153,6 +153,12 @@ def begin_trainer(flags):
         train_func(flags)
 
 
+class Dict2Obj(object):
+    def __init__(self, dictionary):
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
+
+
 def make_train_key(base_dir, flags):
     now = datetime.now().strftime('%Y%m%d%H%M%S')
     return "%s/%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
@@ -161,6 +167,15 @@ def make_train_key(base_dir, flags):
 
 if hasattr(FLAGS, "mark_as_parsed"):
     FLAGS.mark_as_parsed()
+
+args = {}
+try:
+    iterator = iter(FLAGS)
+    for key in iterator:
+        args[key] = getattr(FLAGS, key)
+except TypeError:
+    for key in FLAGS.__dict__["__flags"]:
+        args[key] = FLAGS.__dict__["__flags"][key]
 
 schedule_json = None
 if os.path.isfile(FLAGS.config):
@@ -171,15 +186,15 @@ if os.path.isfile(FLAGS.config):
 if not schedule_json:
     if not os.path.isabs(FLAGS.log_dir):
         log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
-        FLAGS.__setattr__("log_dir", log_dir)
-    begin_trainer(FLAGS)
+        args["log_dir"] = log_dir
+    begin_trainer(Dict2Obj(args))
 else:
     backup = {}
     start_time = datetime.now().strftime('%Y%m%d%H%M%S')
     for config in schedule_json:
         for key in config:
-            backup[key] = FLAGS.__getattr__(key)
-            FLAGS.__setattr__(key, config[key])
+            backup[key] = args[key]
+            args[key] = config[key]
         backup["log_dir"] = FLAGS.log_dir
         if os.path.isabs(FLAGS.log_dir):
             base_dir = FLAGS.log_dir
@@ -188,9 +203,9 @@ else:
         train_key = make_train_key(base_dir, FLAGS)
         if not os.path.isdir(train_key):
             os.makedirs(train_key)
-        FLAGS.__setattr__("log_dir", train_key)
-        begin_trainer(FLAGS)
+        args["log_dir"] = train_key
+        begin_trainer(Dict2Obj(args))
         for key in backup:
-            FLAGS.__setattr__(key, backup[key])
-        FLAGS.__setattr__("log_dir", backup["log_dir"])
+            args[key] = backup[key]
+        args["log_dir"] = backup["log_dir"]
         backup = {}

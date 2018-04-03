@@ -135,10 +135,7 @@ class Trainer:
     def init_config(self):
         label_path = os.path.join(self.config.dataset_dir, "labels.txt")
         num_class = util.count_label(label_path)
-        try:
-            tf.app.flags.DEFINE_integer('num_class', num_class, 'num_class')
-        except Exception:
-            self.config.num_class = num_class
+        self.config.num_class = num_class
 
         if not self.config.num_class:
             raise Exception("Check the label file : %s" % label_path)
@@ -149,10 +146,7 @@ class Trainer:
                 raise Exception("There is no tfrecord files")
             num_train_sample = util.count_records(train_filenames)
 
-            try:
-                tf.app.flags.DEFINE_integer('num_train_sample', num_train_sample, 'num_train_sample')
-            except Exception:
-                self.config.num_train_sample = num_train_sample
+            self.config.num_train_sample = num_train_sample
 
         if self.config.validation:
             validation_filenames = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir,
@@ -162,10 +156,7 @@ class Trainer:
 
             num_validation_sample = util.count_records(validation_filenames)
 
-            try:
-                tf.app.flags.DEFINE_integer('num_validation_sample', num_validation_sample, 'num_validation_sample')
-            except Exception:
-                self.config.num_validation_sample = num_validation_sample
+            self.config.num_validation_sample = num_validation_sample
 
     def init_model(self):
         model = model_factory.build_model(self.config)
