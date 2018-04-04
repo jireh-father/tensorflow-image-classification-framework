@@ -28,19 +28,15 @@ def build_model(config):
             logits = tf.reshape(logits, [-1, config.num_class])
 
     else:
-        build_model_f = util.get_func('model.%s' % config.model_name, "build_model")
+        build_model_f = util.get_attr('model.%s' % config.model_name, "build_model")
         if not build_model_f:
             return None
-        model_module = util.get_module('model.%s' % config.model_name)
         if not config.input_size:
-            config.input_size = getattr(model_module, "input_size", 224)
+            config.input_size = util.get_attr('model.%s' % config.model_name, "input_size")
+            if not config.input_size:
+                config.input_size = 224
             print(config.input_size)
-        # todo!!
-        if hasattr(model_module, "default_last_conv_name"):
-            default_last_conv_name = getattr(model_module, "default_last_conv_name")
-            print(default_last_conv_name)
-        print("gogo")
-        sys.exit()
+        default_last_conv_name = util.get_attr('model.%s' % config.model_name, "default_last_conv_name")
 
         inputs = tf.placeholder(tf.float32, shape=[None, config.input_size, config.input_size, config.num_channel],
                                 name="inputs")
@@ -58,7 +54,7 @@ def build_model(config):
     else:
         loss_file = "softmax_cross_entropy"
 
-    loss_f = util.get_func('model.loss.%s' % loss_file, "build_loss")
+    loss_f = util.get_attr('model.loss.%s' % loss_file, "build_loss")
     ops = None
     if loss_f:
         ops = loss_f(logits, labels, global_step, config)

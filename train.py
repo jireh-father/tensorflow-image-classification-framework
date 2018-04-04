@@ -148,7 +148,7 @@ def begin_trainer(flags):
     else:
         trainer_name = flags.trainer
     trainer_path = 'trainer.%s' % trainer_name
-    train_func = util.get_func(trainer_path, "main")
+    train_func = util.get_attr(trainer_path, "main")
     if train_func:
         train_func(flags)
 

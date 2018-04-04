@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 
 
-def get_func(file_path, func_name):
+def get_attr(file_path, func_name):
     try:
         # print(":" + file_path + ":")
         # module = importlib.import_module("trainer.base_trainer")
@@ -15,22 +15,9 @@ def get_func(file_path, func_name):
         return getattr(module, func_name)
 
     except ImportError:
-        print("There is no the %s file." % file_path)
+        return None
     except AttributeError:
-        print("There is no the %s function in %s file." % (func_name, file_path))
-    return None
-
-
-def get_module(file_path):
-    try:
-        # print(":" + file_path + ":")
-        # module = importlib.import_module("trainer.base_trainer")
-        return __import__(file_path)
-        # return importlib.import_module(file_path)
-
-    except ImportError:
-        print("There is no the %s file." % file_path)
-    return None
+        return None
 
 
 def count_label(label_file):
