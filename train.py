@@ -141,6 +141,7 @@ tf.app.flags.DEFINE_float(
 tf.app.flags.DEFINE_boolean('polynomial_learning_rate_cycle', True, "Whether to cycle of polynomial learning rate")
 
 FLAGS = tf.app.flags.FLAGS
+FLAGS.dataset_name
 
 
 def begin_trainer(flags):
