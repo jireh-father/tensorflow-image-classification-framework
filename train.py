@@ -3,7 +3,6 @@ from core import util
 import os, json
 from datetime import datetime
 
-FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
@@ -140,6 +139,8 @@ tf.app.flags.DEFINE_float(
     'If left as None, then moving averages are not used.')
 
 tf.app.flags.DEFINE_boolean('polynomial_learning_rate_cycle', True, "Whether to cycle of polynomial learning rate")
+
+FLAGS = tf.app.flags.FLAGS
 
 
 def begin_trainer(flags):

@@ -6,12 +6,7 @@ import tensorflow as tf
 
 def get_attr(file_path, func_name):
     try:
-        # print(":" + file_path + ":")
-        # module = importlib.import_module("trainer.base_trainer")
         module = __import__(file_path + "", globals(), locals(), [func_name])
-        print(dir(module))
-        print(module)
-        # module = importlib.import_module(file_path)
         return getattr(module, func_name)
 
     except ImportError:
