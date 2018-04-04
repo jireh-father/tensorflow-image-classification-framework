@@ -151,6 +151,8 @@ def begin_trainer(flags):
     train_func = util.get_attr(trainer_path, "main")
     if train_func:
         train_func(flags)
+    else:
+        print("failed to load trainer : %s" % trainer_path)
 
 
 class Dict2Obj(object):
