@@ -296,7 +296,7 @@ class Trainer:
         return False
 
     def train_multiple(self, epoch):
-        self.train_dataset.init()
+        # self.train_dataset.init()
         # total_accuracy = .0
         total_loss = .0
         step = 0
