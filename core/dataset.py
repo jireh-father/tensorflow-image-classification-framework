@@ -58,7 +58,7 @@ class Dataset(object):
             # ds = ds.batch(batch_size)
             # ds = ds.prefetch(buffer_size=batch_size)
             iterator = ds.make_one_shot_iterator()
-            for d in gpu_list:
+            for d in range(len(gpu_list)):
                 labels[d], images[d] = iterator.get_next()
 
             # for split_index in range(config.num_gpus):

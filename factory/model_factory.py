@@ -76,7 +76,7 @@ def build_model_multiple(config, dataset, model_f):
         gpu_list = range(config.num_gpus)
 
     with tf.variable_scope(tf.get_variable_scope()):
-        for i in gpu_list:
+        for idx, i in enumerate(gpu_list):
             with tf.device('/gpu:%d' % i):
                 with tf.name_scope('%s_%d' % ("tower", i)) as scope:
 
@@ -90,7 +90,7 @@ def build_model_multiple(config, dataset, model_f):
                         # inputs = tf.placeholder(tf.float32, shape=[None, config.input_size, config.input_size, config.num_channel],
                         #                         name="inputs")
                         # tf.summary.image('input', inputs, config.num_input_summary)
-                        logits, end_points = model_f(dataset.images[i])
+                        logits, end_points = model_f(dataset.images[idx])
 
                         if config.model_name[:6] == "resnet":
                             logits = tf.reshape(logits, [-1, config.num_class])
@@ -107,8 +107,8 @@ def build_model_multiple(config, dataset, model_f):
 
                         # inputs = tf.placeholder(tf.float32, shape=[None, config.input_size, config.input_size, config.num_channel],
                         #                         name="inputs")
-                        tf.summary.image('input', dataset.images[i], config.num_input_summary)
-                        model_result = build_model_f(dataset.images[i], config, is_training=is_training)
+                        tf.summary.image('input', dataset.images[idx], config.num_input_summary)
+                        model_result = build_model_f(dataset.images[idx], config, is_training=is_training)
                         if isinstance(model_result, tuple):
                             logits = model_result[0]
                             end_points = model_result[1]
@@ -124,7 +124,7 @@ def build_model_multiple(config, dataset, model_f):
                     loss_f = util.get_attr('model.loss.%s' % loss_file, "build_loss_multiple")
                     ops = None
                     if loss_f:
-                        loss = loss_f(logits, dataset.labels[i], global_step, config, scope, opt)
+                        loss = loss_f(logits, dataset.labels[idx], global_step, config, scope, opt)
 
                         tower_grads.append(loss)
     grads = average_gradients(tower_grads)
