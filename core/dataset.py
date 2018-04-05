@@ -45,8 +45,8 @@ class Dataset(object):
             gpu_list = range(config.num_gpus)
         if config.num_gpus > 1 or len(gpu_list) > 1:
             batch_size_per_split = batch_size // config.num_gpus
-            images = [[] for _ in range(config.num_gpus)]
-            labels = [[] for _ in range(config.num_gpus)]
+            images = []
+            labels = []
 
             ds = ds.apply(
                 batching.map_and_batch(
@@ -61,13 +61,13 @@ class Dataset(object):
             for d in range(len(gpu_list)):
                 labels[d], images[d] = iterator.get_next()
 
-            for split_index in range(config.num_gpus):
-                images[split_index] = tf.reshape(
-                    images[split_index],
-                    shape=[batch_size_per_split, config.input_size, config.input_size,
-                           config.num_channel])
-                labels[split_index] = tf.reshape(labels[split_index],
-                                                 [batch_size_per_split])
+            # for split_index in range(config.num_gpus):
+            #     images[split_index] = tf.reshape(
+            #         images[split_index],
+            #         shape=[batch_size_per_split, config.input_size, config.input_size,
+            #                config.num_channel])
+            #     labels[split_index] = tf.reshape(labels[split_index],
+            #                                      [batch_size_per_split])
             self.images = images
             self.labels = labels
 
