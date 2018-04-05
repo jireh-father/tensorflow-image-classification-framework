@@ -311,7 +311,7 @@ class Trainer:
             try:
                 _, loss, global_step = self.sess.run([self.train_op, self.loss_op, self.global_step],
                                                      feed_dict={self.is_training: True})
-                total_loss += loss
+                # total_loss += loss
 
                 if step % self.config.summary_interval == 0:
                     now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
@@ -333,7 +333,7 @@ class Trainer:
                 break
         if step > 0:
             # avg_accuracy = float(total_accuracy) / step
-            avg_loss = float(total_loss) / step
+            # avg_loss = float(total_loss) / step
             # print("%d Epoch Avg Train Accuracy : %f" % (epoch, avg_accuracy))
             # self.summary_average(epoch, avg_accuracy, avg_loss)
 
