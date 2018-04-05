@@ -19,9 +19,9 @@ class Dataset(object):
             conf_key = "validation_name"
             dataset_map = self.test_dataset_map
 
-        files = tf.data.Dataset.list_files(dataset_path)
-        # files = tf.data.Dataset.list_files(
-        #     os.path.join(config.dataset_dir, "%s_%s*tfrecord" % (config.dataset_name, getattr(config, conf_key))))
+        # files = tf.data.Dataset.list_files(dataset_path)
+        files = tf.data.Dataset.list_files(
+            os.path.join(config.dataset_dir, "%s_%s*tfrecord" % (config.dataset_name, getattr(config, conf_key))))
 
         # if hasattr(tf.contrib.data, "parallel_interleave"):
         #     ds = files.apply(tf.contrib.data.parallel_interleave(
