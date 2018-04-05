@@ -168,11 +168,9 @@ class Trainer:
             num_validation_sample = util.count_records(validation_filenames)
 
             self.config.num_validation_sample = num_validation_sample
-        # tf_config = tf.ConfigProto()
-        # tf_config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=tf.ConfigProto(
-            allow_soft_placement=True,
-            log_device_placement=True, allow_growth=True))
+        tf_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+        tf_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=tf_config)
 
         # self.sess = tf.Session(config=tf_config)
         self.is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
