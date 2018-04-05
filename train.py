@@ -11,6 +11,7 @@ tf.app.flags.DEFINE_string('loss_file', "softmax_cross_entropy", "loss_file")
 tf.app.flags.DEFINE_integer('batch_size', 128, "batch_size")
 tf.app.flags.DEFINE_integer('validation_batch_size', 256, "validation_batch_size")
 tf.app.flags.DEFINE_integer('epoch', 1, "epoch")
+tf.app.flags.DEFINE_integer('num_gpus', 1, "num gpus")
 tf.app.flags.DEFINE_integer('total_steps', None, "total_steps")
 tf.app.flags.DEFINE_integer('steps_per_epoch', None, "steps_per_epoch")
 tf.app.flags.DEFINE_string('train_name', "train", "train dataset file name")
@@ -20,7 +21,11 @@ tf.app.flags.DEFINE_boolean('validation', True, "validation")
 tf.app.flags.DEFINE_boolean('use_summary', True, "use_summary")
 tf.app.flags.DEFINE_float('train_fraction', 0.9, "train_fraction")
 tf.app.flags.DEFINE_integer('num_channel', 1, "num channel")
-tf.app.flags.DEFINE_integer('num_dataset_parallel', 4, "num_dataset_parallel")
+tf.app.flags.DEFINE_integer('num_dataset_split', 4, "num_dataset_split")
+tf.app.flags.DEFINE_integer('num_parallel_calls', 4, "num_parallel_calls")
+tf.app.flags.DEFINE_integer('num_parallel_readers', 4, "num_parallel_readers")
+tf.app.flags.DEFINE_boolean('cache_data', False, "cache_data")
+
 tf.app.flags.DEFINE_string('log_dir',
                            os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
                            "save dir")
@@ -44,7 +49,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 10, "summary_interval")
 tf.app.flags.DEFINE_integer('summary_images', 32, "summary_images")
 tf.app.flags.DEFINE_boolean('remove_original_images', False, "remove_original_images")
 tf.app.flags.DEFINE_boolean('use_train_shuffle', True, "use shuffle")
-tf.app.flags.DEFINE_integer('buffer_size', 1000, "buffer_size")
+tf.app.flags.DEFINE_integer('buffer_size', 10000, "buffer_size")
 tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', True, "use_prediction_for_embed_visualization")
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
 tf.app.flags.DEFINE_boolean('use_regularizer', True, "use_regularizer")
@@ -134,7 +139,7 @@ tf.app.flags.DEFINE_integer(
     'The Number of gradients to collect before updating params.')
 
 tf.app.flags.DEFINE_float(
-    'moving_average_decay', None,
+    'moving_average_decay', 0.9999,
     'The decay to use for the moving average.'
     'If left as None, then moving averages are not used.')
 
