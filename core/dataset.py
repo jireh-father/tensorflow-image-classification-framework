@@ -61,14 +61,13 @@ class Dataset(object):
             for d in range(len(gpu_list)):
                 labels[d], images[d] = iterator.get_next()
 
-            # for split_index in range(config.num_gpus):
-            #     images[split_index] = tf.cast(images[split_index], self.dtype)
-            #     depth = 3
-            #     images[split_index] = tf.reshape(
-            #         images[split_index],
-            #         shape=[self.batch_size_per_split, self.height, self.width, depth])
-            #     labels[split_index] = tf.reshape(labels[split_index],
-            #                                      [self.batch_size_per_split])
+            for split_index in range(config.num_gpus):
+                images[split_index] = tf.reshape(
+                    images[split_index],
+                    shape=[batch_size_per_split, config.input_size, config.input_size,
+                           config.num_channel])
+                labels[split_index] = tf.reshape(labels[split_index],
+                                                 [batch_size_per_split])
             self.images = images
             self.labels = labels
 
