@@ -40,7 +40,7 @@ class Dataset(object):
         if shuffle:
             ds = ds.shuffle(buffer_size=config.buffer_size)
         if config.gpu_list:
-            gpu_list = config.gpu_list.split(",")
+            gpu_list = [int(i) for i in config.gpu_list.split(",")]
         else:
             gpu_list = range(config.num_gpus)
         if config.num_gpus > 1 or len(gpu_list) > 1:
