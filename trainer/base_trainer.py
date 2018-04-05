@@ -316,8 +316,9 @@ class Trainer:
                 if step % self.config.summary_interval == 0:
                     now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
                     print(
-                        "[%s TRAIN] [Epoch: %3d] [Current Step: %4d / %4d] [Cost: %10f]" % (
-                            now, epoch, step + 1, total_steps, loss))
+                        "[%s TRAIN] [Epoch: %3d] [Current Step: %4d / %4d]" % (
+                            now, epoch, step + 1, total_steps))
+                    print(loss)
 
                     if self.config.use_summary:
                         summary = self.sess.run(self.summary_op,
