@@ -102,11 +102,11 @@ class Dataset(object):
                                                                              is_training=is_training)
             image = tf.image.decode_image(parsed_features["image/encoded"], self.config.num_channel)
             image = tf.clip_by_value(
-                image_preprocessing_fn(image, self.input_size, self.input_size), -1, 1.0)
+                image_preprocessing_fn(image, self.config.input_size, self.config.input_size), -1, 1.0)
         else:
             image = tf.clip_by_value(tf.image.per_image_standardization(
                 tf.image.resize_images(tf.image.decode_jpeg(parsed_features["image/encoded"], self.config.num_channel),
-                                       [self.input_size, self.input_size])), -1., 1.0)
+                                       [self.config.input_size, self.config.input_size])), -1., 1.0)
 
         if len(parsed_features["image/class/label"].get_shape()) == 0:
             label = tf.one_hot(parsed_features["image/class/label"], self.config.num_class)
