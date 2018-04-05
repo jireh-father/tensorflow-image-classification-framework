@@ -54,6 +54,7 @@ class Trainer:
         self.avg_accuracy_summary = None
         self.dataset_path = tf.placeholder(tf.string, shape=(), name="dataset_path")
         self.input_size = tf.placeholder(tf.int32, shape=(), name="input_size")
+        self.model_f = None
 
     def run(self):
         self.make_dataset()
@@ -168,10 +169,18 @@ class Trainer:
         tf_config = tf.ConfigProto()
         tf_config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=tf_config)
+        self.is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
+        from slim.model import model_factory as mf
+        self.model_f = mf.get_network_fn(self.config.model_name, self.config.num_class,
+                                         weight_decay=self.config.weight_decay,
+                                         is_training=self.is_training)
+
+        if not self.config.input_size:
+            self.config.input_size = self.model_f.default_image_size
 
     def init_model(self):
         if self.config.num_gpus > 1:
-            model = model_factory.build_model_multiple(self.config, self.train_dataset)
+            model = model_factory.build_model_multiple(self.config, self.train_dataset, self.model_f)
             self.train_op, self.is_training, self.global_step, default_last_conv_name, self.loss_op = model
             return
         else:

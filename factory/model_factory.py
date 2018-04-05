@@ -62,10 +62,10 @@ def build_model(config):
     return inputs, labels, logits, end_points, is_training, global_step, default_last_conv_name, ops
 
 
-def build_model_multiple(config, dataset):
+def build_model_multiple(config, dataset, model_f):
     # labels = tf.placeholder(tf.float32, shape=[None, config.num_class], name="labels")
     global_step = tf.Variable(0, trainable=False)
-    is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
+
     default_last_conv_name = None
     learning_rate = optimizer.configure_learning_rate(global_step, config)
     opt = optimizer.configure_optimizer(learning_rate, config)
@@ -74,6 +74,7 @@ def build_model_multiple(config, dataset):
         gpu_list = [int(i) for i in config.gpu_list.split(",")]
     else:
         gpu_list = range(config.num_gpus)
+
     with tf.variable_scope(tf.get_variable_scope()):
         for i in gpu_list:
             with tf.device('/gpu:%d' % i):
@@ -82,15 +83,10 @@ def build_model_multiple(config, dataset):
                     if config.model_name in model_factory.networks_map.keys():
                         if config.model_name[:6] == "nasnet":
                             is_training = config.train
-                        model_f = model_factory.get_network_fn(config.model_name, config.num_class,
-                                                               weight_decay=config.weight_decay,
-                                                               is_training=is_training)
 
                         if hasattr(model_f, 'default_last_conv_name'):
                             default_last_conv_name = model_f.default_last_conv_name
 
-                        if not config.input_size:
-                            config.input_size = model_f.default_image_size
                         # inputs = tf.placeholder(tf.float32, shape=[None, config.input_size, config.input_size, config.num_channel],
                         #                         name="inputs")
                         # tf.summary.image('input', inputs, config.num_input_summary)
