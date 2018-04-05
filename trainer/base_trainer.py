@@ -168,9 +168,13 @@ class Trainer:
             num_validation_sample = util.count_records(validation_filenames)
 
             self.config.num_validation_sample = num_validation_sample
-        tf_config = tf.ConfigProto()
-        tf_config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=tf_config)
+        # tf_config = tf.ConfigProto()
+        # tf_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=tf.ConfigProto(
+            allow_soft_placement=True,
+            log_device_placement=True, allow_growth=True))
+
+        # self.sess = tf.Session(config=tf_config)
         self.is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
         from slim.model import model_factory as mf
         self.model_f = mf.get_network_fn(self.config.model_name, self.config.num_class,
