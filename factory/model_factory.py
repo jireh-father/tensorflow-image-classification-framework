@@ -70,8 +70,12 @@ def build_model_multiple(config, dataset):
     learning_rate = optimizer.configure_learning_rate(global_step, config)
     opt = optimizer.configure_optimizer(learning_rate, config)
     tower_grads = []
+    if config.gpu_list:
+        gpu_list = [int(i) for i in config.gpu_list.split(",")]
+    else:
+        gpu_list = range(config.num_gpus)
     with tf.variable_scope(tf.get_variable_scope()):
-        for i in range(config.num_gpus):
+        for i in gpu_list:
             with tf.device('/gpu:%d' % i):
                 with tf.name_scope('%s_%d' % ("tower", i)) as scope:
 

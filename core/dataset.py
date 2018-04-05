@@ -39,8 +39,10 @@ class Dataset(object):
         # ds = ds.repeat()
         if shuffle:
             ds = ds.shuffle(buffer_size=config.buffer_size)
-
-        if config.num_gpus > 1:
+        gpu_list = []
+        if config.gpu_list:
+            gpu_list = config.gpu_list.split(",")
+        if config.num_gpus > 1 or len(gpu_list) > 1:
             batch_size_per_split = batch_size // config.num_gpus
             images = [[] for _ in range(config.num_gpus)]
             labels = [[] for _ in range(config.num_gpus)]
