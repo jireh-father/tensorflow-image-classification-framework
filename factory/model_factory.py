@@ -62,7 +62,7 @@ def build_model(config):
     return inputs, labels, logits, end_points, is_training, global_step, default_last_conv_name, ops
 
 
-def build_model_multiple(config, dataset, model_f):
+def build_model_multiple(config, dataset, model_f, is_training):
     # labels = tf.placeholder(tf.float32, shape=[None, config.num_class], name="labels")
     global_step = tf.Variable(0, trainable=False)
 

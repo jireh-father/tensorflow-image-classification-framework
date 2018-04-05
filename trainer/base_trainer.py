@@ -180,7 +180,7 @@ class Trainer:
 
     def init_model(self):
         if self.config.num_gpus > 1:
-            model = model_factory.build_model_multiple(self.config, self.train_dataset, self.model_f)
+            model = model_factory.build_model_multiple(self.config, self.train_dataset, self.model_f, self.is_training)
             self.train_op, self.is_training, self.global_step, default_last_conv_name, self.loss_op = model
             return
         else:
