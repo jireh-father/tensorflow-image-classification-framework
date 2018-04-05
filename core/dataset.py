@@ -55,7 +55,10 @@ class Dataset(object):
             # ds = ds.prefetch(buffer_size=batch_size)
             iterator = ds.make_one_shot_iterator()
             for d in range(config.num_gpus):
-                labels[d], images[d] = iterator.get_next()
+                tmp_data = iterator.get_next()
+                labels.append(tmp_data[1])
+                images.append(tmp_data[0])
+                # labels[d], images[d] = iterator.get_next()
 
             # for split_index in range(config.num_gpus):
             #     images[split_index] = tf.reshape(
