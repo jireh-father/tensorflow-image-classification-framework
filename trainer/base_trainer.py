@@ -116,6 +116,8 @@ class Trainer:
                                              self.config.remove_original_images)
 
     def summary(self):
+        if not self.config.use_summary:
+            return
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
         for end_point in self.end_points:
