@@ -135,7 +135,7 @@ def build_model_multiple(config, dataset, model_f, is_training):
     # Group all updates to into a single train op.
     train_op = tf.group(apply_gradient_op, variables_averages_op)
 
-    return train_op, is_training, global_step, default_last_conv_name, grads
+    return train_op, is_training, global_step, default_last_conv_name, tower_grads
 
 
 def average_gradients(tower_grads):
