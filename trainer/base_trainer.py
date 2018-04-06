@@ -32,7 +32,7 @@ class Trainer:
         self.accuracy_op = None
         self.learning_rate = None
         self.pred_idx_op = None
-        self.is_training = None
+        self.is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
         self.heatmap_imgs = {}
         self.num_current_cam = 0
         self.train_projector_config = projector.ProjectorConfig()
@@ -52,18 +52,16 @@ class Trainer:
         self.avg_loss_summary = None
         self.avg_accuracy_pl = None
         self.avg_accuracy_summary = None
-        self.dataset_path = tf.placeholder(tf.string, shape=(), name="dataset_path")
         self.input_size = tf.placeholder(tf.int32, shape=(), name="input_size")
-        self.model_f = None
 
     def run(self):
         self.make_dataset()
 
         self.init_config()
 
-        self.init_dataset()
-
         self.init_model()
+
+        self.init_dataset()
 
         self.summary()
 
@@ -74,16 +72,10 @@ class Trainer:
         stop = False
         for epoch in range(self.config.epoch):
             if self.config.train:
-                if self.config.num_gpus > 1:
-                    stop = self.train_multiple(epoch)
-                else:
-                    stop = self.train(epoch)
+                stop = self.train(epoch)
 
             if self.config.validation:
-                if self.config.num_gpus > 1:
-                    self.validate_multiple(epoch)
-                else:
-                    self.validate(epoch)
+                self.validate(epoch)
 
                 if epoch % self.config.validation_embed_visualization_interval == 0 and self.validation_embed_activations is not None:
                     embedding.add_embedding(self.validation_projector_config, sess=self.sess,
@@ -168,27 +160,12 @@ class Trainer:
             num_validation_sample = util.count_records(validation_filenames)
 
             self.config.num_validation_sample = num_validation_sample
-        tf_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+        tf_config = tf.ConfigProto()
         tf_config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=tf_config)
 
-        # self.sess = tf.Session(config=tf_config)
-        self.is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
-        from slim.model import model_factory as mf
-        self.model_f = mf.get_network_fn(self.config.model_name, self.config.num_class,
-                                         weight_decay=self.config.weight_decay,
-                                         is_training=self.is_training)
-
-        if not self.config.input_size:
-            self.config.input_size = self.model_f.default_image_size
-
     def init_model(self):
-        if self.config.num_gpus > 1:
-            model = model_factory.build_model_multiple(self.config, self.train_dataset, self.model_f, self.is_training)
-            self.train_op, self.is_training, self.global_step, default_last_conv_name, self.loss_op = model
-            return
-        else:
-            model = model_factory.build_model(self.config)
+        model = model_factory.build_model(self.config)
 
         if model is None:
             raise Exception("There is no model name.(%s)" % self.config.model_name)
@@ -216,14 +193,12 @@ class Trainer:
 
     def init_dataset(self):
         self.train_dataset = Dataset(self.sess, self.config.batch_size, self.config.use_train_shuffle, True,
-                                     self.config, self.dataset_path, self.input_size)
+                                     self.config, self.input_size)
         self.validation_dataset = Dataset(self.sess, self.config.validation_batch_size, False, False, self.config,
-                                          self.dataset_path, self.input_size)
+                                          self.input_size)
 
     def train(self, epoch):
-        dataset_path = os.path.join(self.config.dataset_dir,
-                                    "%s_%s*tfrecord" % (self.config.dataset_name, self.config.train_name))
-        self.train_dataset.init(dataset_path, self.config.input_size)
+        self.train_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
         step = 0
@@ -295,58 +270,8 @@ class Trainer:
                 self.train_projector_config = projector.ProjectorConfig()
         return False
 
-    def train_multiple(self, epoch):
-        # self.train_dataset.init()
-        # total_accuracy = .0
-        total_loss = .0
-        step = 0
-        total_steps = self.config.num_train_sample // self.config.batch_size
-        if self.config.num_train_sample % self.config.batch_size > 0:
-            total_steps += 1
-        self.num_current_train_embed = 0
-        self.train_embed_labels = None
-        self.train_embed_activations = None
-        self.train_embed_dataset = None
-        while True:
-            try:
-                _, loss, global_step = self.sess.run([self.train_op, self.loss_op, self.global_step],
-                                                     feed_dict={self.is_training: True})
-                # total_loss += loss
-
-                if step % self.config.summary_interval == 0:
-                    now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-                    print(
-                        "[%s TRAIN] [Epoch: %3d] [Current Step: %4d / %4d]" % (
-                            now, epoch, step + 1, total_steps))
-                    print(loss)
-
-                    if self.config.use_summary:
-                        summary = self.sess.run(self.summary_op,
-                                                feed_dict={self.is_training: True})
-                        self.train_writer.add_summary(summary, global_step)
-                step += 1
-
-                if self.config.total_steps and global_step >= self.config.total_steps:
-                    return True
-                if self.config.steps_per_epoch and step >= self.config.steps_per_epoch:
-                    break
-            except tf.errors.OutOfRangeError:
-                break
-        if step > 0:
-            # avg_accuracy = float(total_accuracy) / step
-            # avg_loss = float(total_loss) / step
-            # print("%d Epoch Avg Train Accuracy : %f" % (epoch, avg_accuracy))
-            # self.summary_average(epoch, avg_accuracy, avg_loss)
-
-            if epoch % self.config.save_interval == 0:
-                self.saver.save(self.sess, self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
-
-        return False
-
     def validate(self, epoch):
-        dataset_path = os.path.join(self.config.dataset_dir,
-                                    "%s_%s*tfrecord" % (self.config.dataset_name, self.config.validation_name))
-        self.validation_dataset.init(dataset_path, self.config.input_size)
+        self.validation_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
         step = 0

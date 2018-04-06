@@ -6,11 +6,10 @@ from tensorflow.contrib.data.python.ops import batching
 
 
 class Dataset(object):
-    def __init__(self, sess, batch_size, shuffle, is_training, config, dataset_path, input_size):
+    def __init__(self, sess, batch_size, shuffle, is_training, config, input_size):
         self.sess = sess
         self.config = config
         self.input_size = input_size
-        self.dataset_path = dataset_path
 
         if is_training:
             conf_key = "train_name"
@@ -19,15 +18,14 @@ class Dataset(object):
             conf_key = "validation_name"
             dataset_map = self.test_dataset_map
 
-        # files = tf.data.Dataset.list_files(dataset_path)
         files = tf.data.Dataset.list_files(
             os.path.join(config.dataset_dir, "%s_%s*tfrecord" % (config.dataset_name, getattr(config, conf_key))))
 
-        # if hasattr(tf.contrib.data, "parallel_interleave"):
-        #     ds = files.apply(tf.contrib.data.parallel_interleave(
-        #         tf.data.TFRecordDataset, cycle_length=config.num_parallel_readers))
-        # else:
-        ds = files.interleave(tf.data.TFRecordDataset, cycle_length=config.num_parallel_readers)
+        if hasattr(tf.contrib.data, "parallel_interleave"):
+            ds = files.apply(tf.contrib.data.parallel_interleave(
+                tf.data.TFRecordDataset, cycle_length=config.num_parallel_readers))
+        else:
+            ds = files.interleave(tf.data.TFRecordDataset, cycle_length=config.num_parallel_readers)
 
         if config.cache_data:
             ds = ds.take(1).cache().repeat()
@@ -39,54 +37,23 @@ class Dataset(object):
         # ds = ds.repeat()
         if shuffle:
             ds = ds.shuffle(buffer_size=config.buffer_size)
-        if config.num_gpus > 1:
-            batch_size_per_split = batch_size // config.num_gpus
-            images = []
-            labels = []
 
-            ds = ds.apply(
-                batching.map_and_batch(
-                    map_func=dataset_map,
-                    batch_size=batch_size_per_split,
-                    num_parallel_batches=config.num_gpus))
-            ds = ds.prefetch(buffer_size=config.num_gpus)
-            # ds = ds.map(dataset_map, num_parallel_calls=batch_size)
-            # ds = ds.batch(batch_size)
-            # ds = ds.prefetch(buffer_size=batch_size)
-            iterator = ds.make_one_shot_iterator()
-            for d in range(config.num_gpus):
-                tmp_data = iterator.get_next()
-                labels.append(tmp_data[1])
-                images.append(tmp_data[0])
-                # labels[d], images[d] = iterator.get_next()
-
-            # for split_index in range(config.num_gpus):
-            #     images[split_index] = tf.reshape(
-            #         images[split_index],
-            #         shape=[batch_size_per_split, config.input_size, config.input_size,
-            #                config.num_channel])
-            #     labels[split_index] = tf.reshape(labels[split_index],
-            #                                      [batch_size_per_split])
-            self.images = images
-            self.labels = labels
-
+        if hasattr(tf.contrib.data, "map_and_batch"):
+            ds = ds.apply(tf.contrib.data.map_and_batch(map_func=dataset_map, batch_size=batch_size))
         else:
-            if hasattr(tf.contrib.data, "map_and_batch"):
-                ds = ds.apply(tf.contrib.data.map_and_batch(map_func=dataset_map, batch_size=batch_size))
-            else:
-                ds = ds.map(map_func=dataset_map, num_parallel_calls=config.num_parallel_calls)
-                ds = ds.batch(batch_size)
-            ds = ds.prefetch(buffer_size=batch_size)
+            ds = ds.map(map_func=dataset_map, num_parallel_calls=config.num_parallel_calls)
+            ds = ds.batch(batch_size)
+        ds = ds.prefetch(buffer_size=batch_size)
 
-            self.iterator = ds.make_initializable_iterator()
-            self.next_batch = self.iterator.get_next()
+        self.iterator = ds.make_initializable_iterator()
+        self.next_batch = self.iterator.get_next()
 
     def get_next_batch(self):
         return self.sess.run(self.next_batch)
 
-    def init(self, dataset_path, input_size):
+    def init(self, input_size):
         self.sess.run(self.iterator.initializer,
-                      feed_dict={self.dataset_path: dataset_path, self.input_size: input_size})
+                      feed_dict={self.input_size: input_size})
 
     def pre_process(self, example_proto, is_training):
         features = {"image/encoded": tf.FixedLenFeature((), tf.string, default_value=""),
