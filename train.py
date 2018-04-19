@@ -156,7 +156,12 @@ def begin_trainer(flags):
     trainer_path = 'trainer.%s' % trainer_name
     train_func = util.get_attr(trainer_path, "main")
     if train_func:
-        train_func(flags)
+        try:
+            train_func(flags)
+        except Exception as e:
+            print(type(e))
+            print(e.args)
+            print(e)
     else:
         print("failed to load trainer : %s" % trainer_path)
 
