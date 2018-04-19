@@ -8,8 +8,8 @@ tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
 tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
 tf.app.flags.DEFINE_string('loss_file', "softmax_cross_entropy", "loss_file")
-tf.app.flags.DEFINE_integer('batch_size', 128, "batch_size")
-tf.app.flags.DEFINE_integer('validation_batch_size', 256, "validation_batch_size")
+tf.app.flags.DEFINE_integer('batch_size', 64, "batch_size")
+tf.app.flags.DEFINE_integer('validation_batch_size', 128, "validation_batch_size")
 tf.app.flags.DEFINE_integer('epoch', 1, "epoch")
 tf.app.flags.DEFINE_integer('total_steps', None, "total_steps")
 tf.app.flags.DEFINE_integer('steps_per_epoch', None, "steps_per_epoch")
@@ -49,7 +49,7 @@ tf.app.flags.DEFINE_integer('summary_images', 32, "summary_images")
 tf.app.flags.DEFINE_boolean('remove_original_images', False, "remove_original_images")
 tf.app.flags.DEFINE_boolean('use_train_shuffle', True, "use shuffle")
 tf.app.flags.DEFINE_integer('buffer_size', 10000, "buffer_size")
-tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', True, "use_prediction_for_embed_visualization")
+tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', False, "use_prediction_for_embed_visualization")
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
 tf.app.flags.DEFINE_boolean('use_regularizer', True, "use_regularizer")
 tf.app.flags.DEFINE_integer('input_size', None, "input_size")
@@ -187,10 +187,7 @@ except TypeError:
 
 schedule_json = None
 if os.path.isfile(FLAGS.config):
-    try:
-        schedule_json = json.load(open(FLAGS.config))
-    except json.decoder.JSONDecodeError:
-        schedule_json = None
+    schedule_json = json.load(open(FLAGS.config))
 if not schedule_json:
     if not os.path.isabs(FLAGS.log_dir):
         log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
@@ -208,11 +205,12 @@ else:
             base_dir = FLAGS.log_dir
         else:
             base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint_%s" % start_time)
-        train_key = make_train_key(base_dir, FLAGS)
+        args_obj = Dict2Obj(args)
+        train_key = make_train_key(base_dir, args_obj)
         if not os.path.isdir(train_key):
             os.makedirs(train_key)
-        args["log_dir"] = train_key
-        begin_trainer(Dict2Obj(args))
+        args_obj.log_dir = train_key
+        begin_trainer(args_obj)
         for key in backup:
             args[key] = backup[key]
         args["log_dir"] = backup["log_dir"]

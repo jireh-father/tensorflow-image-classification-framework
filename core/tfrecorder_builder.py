@@ -97,7 +97,10 @@ def _convert_dataset(dataset_name, split_name, filenames, class_names_to_ids, da
 
                         # Read the filename:
                         image_data = tf.gfile.FastGFile(filenames[i], 'rb').read()
-                        height, width = image_reader.read_image_dims(sess, image_data)
+                        try:
+                            height, width = image_reader.read_image_dims(sess, image_data)
+                        except:
+                            continue
 
                         class_name = os.path.basename(os.path.dirname(filenames[i]))
                         class_id = class_names_to_ids[class_name]

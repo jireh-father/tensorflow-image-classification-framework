@@ -48,13 +48,14 @@ def build_model(config):
             logits = model_result
             end_points = None
 
+    ops = None
     if hasattr(config, 'loss_file'):
         loss_file = config.loss_file
     else:
         loss_file = "softmax_cross_entropy"
 
     loss_f = util.get_attr('model.loss.%s' % loss_file, "build_loss")
-    ops = None
+
     if loss_f:
         ops = loss_f(logits, labels, global_step, config)
 

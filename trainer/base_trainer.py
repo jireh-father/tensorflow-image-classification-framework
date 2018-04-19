@@ -125,8 +125,8 @@ class Trainer:
 
         for variable in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
             Trainer.variable_summaries(variable, summaries)
-
-        summaries.add(tf.summary.scalar('learning_rate', self.learning_rate))
+        if self.config.train:
+            summaries.add(tf.summary.scalar('learning_rate', self.learning_rate))
 
         self.summary_op = tf.summary.merge(list(summaries), name='summary_op')
 
@@ -173,12 +173,13 @@ class Trainer:
         self.inputs, self.labels, self.logits, self.end_points, self.is_training, self.global_step, default_last_conv_name, ops = model
         if ops:
             self.loss_op = ops["loss"]
-            self.train_op = ops["train"]
             self.accuracy_op = ops["accuracy"]
-            self.learning_rate = ops["learning_rate"]
             self.pred_idx_op = ops["pred_idx"]
+            if self.config.train:
+                self.train_op = ops["train"]
+                self.learning_rate = ops["learning_rate"]
 
-        if (self.config.use_train_cam or self.config.self.use_validation_cam) and default_last_conv_name:
+        if (self.config.use_train_cam or self.config.use_validation_cam) and default_last_conv_name:
             self.cam = GradCamPlusPlus(self.logits, self.end_points[default_last_conv_name],
                                        self.inputs, self.is_training)
 
@@ -188,7 +189,6 @@ class Trainer:
         summary_dir = os.path.join(self.config.log_dir, "summary")
         self.train_writer = tf.summary.FileWriter(summary_dir + '/train', self.sess.graph)
         self.validation_writer = tf.summary.FileWriter(summary_dir + '/validation')
-        self.sess.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(tf.global_variables())
 
     def init_dataset(self):
@@ -248,13 +248,16 @@ class Trainer:
         if step > 0:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
+
             print("%d Epoch Avg Train Accuracy : %f" % (epoch, avg_accuracy))
-            self.summary_average(epoch, avg_accuracy, avg_loss)
+            if self.config.use_summary:
+                self.summary_average(epoch, avg_accuracy, avg_loss)
 
             if epoch % self.config.save_interval == 0:
                 self.saver.save(self.sess, self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
 
-            self.summary_cam(epoch)
+            if self.config.use_summary:
+                self.summary_cam(epoch)
 
             if epoch % self.config.train_embed_visualization_interval == 0 and self.train_embed_activations is not None:
                 train_embed_dir = os.path.join(self.train_embed_dir, "epoch_" + str(epoch))
@@ -316,8 +319,9 @@ class Trainer:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
             print("%d Epoch - Validation, Avg Accuracy : %f, Avg Loss : %f" % (epoch, avg_accuracy, avg_loss))
-            self.summary_average(epoch, avg_accuracy, avg_loss, False)
-            self.summary_cam(epoch, False)
+            if self.config.use_summary:
+                self.summary_average(epoch, avg_accuracy, avg_loss, False)
+                self.summary_cam(epoch, False)
 
     def summary_average(self, epoch, avg_accuracy, avg_loss, is_train=True):
         if self.config.use_summary:
@@ -394,9 +398,14 @@ class Trainer:
             self.saver.restore(self.sess, self.config.restore_model_path)
 
     def create_cam(self, xs, ys, logits, is_train=True):
-        if self.num_current_cam >= self.config.num_train_cam_epoch:
-            return
-        num_cam = self.config.num_train_cam_epoch - self.num_current_cam
+        if is_train:
+            if self.num_current_cam >= self.config.num_train_cam_epoch:
+                return
+            num_cam = self.config.num_train_cam_epoch - self.num_current_cam
+        else:
+            if self.num_current_cam >= self.config.num_validation_cam_epoch:
+                return
+            num_cam = self.config.num_validation_cam_epoch - self.num_current_cam
         xs = xs[:num_cam]
         ys = ys[:num_cam]
         logits = logits[:num_cam]
@@ -430,6 +439,7 @@ class Trainer:
         else:
             writer = self.validation_writer
         if self.config.use_train_cam and self.cam:
+            # you have to fix this because of graph memory limit over!
             for key in self.heatmap_imgs:
                 self.cam.write_summary(writer, "grad_cam_epoch_%d_%s" % (epoch, key), self.heatmap_imgs[key],
                                        self.sess)
