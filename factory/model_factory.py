@@ -3,7 +3,7 @@ from core import util
 import tensorflow as tf
 
 
-def build_model(config):
+def build_model(class_weights_ph, config):
     labels = tf.placeholder(tf.float32, shape=[None, config.num_class], name="labels")
     global_step = tf.Variable(0, trainable=False)
     is_training = tf.placeholder(tf.bool, shape=(), name="is_training")
@@ -57,6 +57,6 @@ def build_model(config):
     loss_f = util.get_attr('model.loss.%s' % loss_file, "build_loss")
 
     if loss_f:
-        ops = loss_f(logits, labels, global_step, config)
+        ops = loss_f(logits, labels, global_step, class_weights_ph, config)
 
     return inputs, labels, logits, end_points, is_training, global_step, default_last_conv_name, ops

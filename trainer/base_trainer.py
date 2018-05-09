@@ -53,6 +53,8 @@ class Trainer:
         self.avg_accuracy_pl = None
         self.avg_accuracy_summary = None
         self.input_size = tf.placeholder(tf.int32, shape=(), name="input_size")
+        self.class_weights = None
+        self.class_weights_ph = None
 
     def run(self):
         self.make_dataset()
@@ -143,11 +145,20 @@ class Trainer:
         if not self.config.num_class:
             raise Exception("Check the label file : %s" % label_path)
 
+        self.class_weights_ph = tf.placeholder(dtype=tf.float32, shape=[self.config.num_class], name="class_weights_ph")
+
         if self.config.train:
             train_filenames = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir)
             if not train_filenames:
                 raise Exception("There is no tfrecord files")
-            num_train_sample = util.count_records(train_filenames)
+            if self.config.use_weighted_loss:
+                classes_group = util.count_each_classes(self.config.dataset_dir, self.config.dataset_name,
+                                                        self.config.train_name)
+                counts = np.array(list(classes_group.values()))
+                num_train_sample = counts.sum()
+                self.class_weights = counts / num_train_sample
+            else:
+                num_train_sample = util.count_records(train_filenames)
 
             self.config.num_train_sample = num_train_sample
 
@@ -165,7 +176,7 @@ class Trainer:
         self.sess = tf.Session(config=tf_config)
 
     def init_model(self):
-        model = model_factory.build_model(self.config)
+        model = model_factory.build_model(self.class_weights_ph, self.config)
 
         if model is None:
             raise Exception("There is no model name.(%s)" % self.config.model_name)
@@ -217,7 +228,7 @@ class Trainer:
                     [self.train_op, self.accuracy_op, self.loss_op, self.global_step, self.logits,
                      self.pred_idx_op],
                     feed_dict={self.inputs: batch_xs, self.labels: batch_ys,
-                               self.is_training: True})
+                               self.is_training: True, self.class_weights_ph: self.class_weights})
                 total_accuracy += accuracy
                 total_loss += loss
 
@@ -230,7 +241,8 @@ class Trainer:
                     if self.config.use_summary:
                         summary = self.sess.run(self.summary_op,
                                                 feed_dict={self.inputs: batch_xs, self.labels: batch_ys,
-                                                           self.is_training: True})
+                                                           self.is_training: True,
+                                                           self.class_weights_ph: self.class_weights})
                         self.train_writer.add_summary(summary, global_step)
                 step += 1
 
