@@ -30,6 +30,7 @@ tf.app.flags.DEFINE_string('log_dir',
                            "save dir")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
+tf.app.flags.DEFINE_boolean('use_weighted_loss', True, "use_weighted_loss")
 tf.app.flags.DEFINE_boolean('use_train_cam', True, "use_train_cam")
 tf.app.flags.DEFINE_boolean('use_validation_cam', True, "use_validation_cam")
 tf.app.flags.DEFINE_boolean('use_bounding_box_visualization', True, "use_bounding_box_visualization")

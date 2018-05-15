@@ -3,13 +3,18 @@ from core import optimizer
 import re
 
 
-def build_loss(logits, labels, global_step, config):
-    if hasattr(tf.nn, "softmax_cross_entropy_with_logits_v2"):
-        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits),
-                                 name="softmax_cross_entropy")
+def build_loss(logits, labels, global_step, class_weights_ph, config):
+    if config.use_weighted_loss:
+        indices = tf.argmax(labels)
+        logits_class_weights = tf.gather(class_weights_ph, indices)
+        loss_op = tf.losses.softmax_cross_entropy(labels, logits, weights=logits_class_weights)
     else:
-        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits),
-                                 name="softmax_cross_entropy")
+        if hasattr(tf.nn, "softmax_cross_entropy_with_logits_v2"):
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits),
+                                     name="softmax_cross_entropy")
+        else:
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits),
+                                     name="softmax_cross_entropy")
     # todo : tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     # loss = tf.add(loss, tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))
 
