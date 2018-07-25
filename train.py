@@ -1,8 +1,7 @@
 import tensorflow as tf
-from core import util
+from core import trainer
 import os, json
 from datetime import datetime
-import traceback
 
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
@@ -27,7 +26,7 @@ tf.app.flags.DEFINE_integer('num_parallel_readers', 4, "num_parallel_readers")
 tf.app.flags.DEFINE_boolean('cache_data', False, "cache_data")
 
 tf.app.flags.DEFINE_string('log_dir',
-                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint2"),
+                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
                            "save dir")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
@@ -55,7 +54,6 @@ tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', False, "us
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
 tf.app.flags.DEFINE_boolean('use_regularizer', True, "use_regularizer")
 tf.app.flags.DEFINE_integer('input_size', None, "input_size")
-tf.app.flags.DEFINE_string('trainer', None, "trainer file name in the trainer directory")
 ######################
 # Optimization Flags #
 ######################
@@ -151,20 +149,7 @@ FLAGS.dataset_name
 
 
 def begin_trainer(flags):
-    if not flags.trainer:
-        trainer_name = "base_trainer"
-    else:
-        trainer_name = flags.trainer
-    trainer_path = 'trainer.%s' % trainer_name
-    train_func = util.get_attr(trainer_path, "main")
-    if train_func:
-        try:
-            train_func(flags)
-        except Exception as e:
-            traceback.print_exc()
-        tf.reset_default_graph()
-    else:
-        print("failed to load trainer : %s" % trainer_path)
+    trainer.main(flags)
 
 
 class Dict2Obj(object):
@@ -215,6 +200,13 @@ else:
         train_key = make_train_key(base_dir, args_obj)
         if not os.path.isdir(train_key):
             os.makedirs(train_key)
+        args["log_dir"] = train_key
+        f = open(os.path.join(train_key, "train_parameters.txt"), "w")
+        f.write("%s\n" % datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        f.write("%s\n" % json.dumps(args))
+        for key in args:
+            f.write("%s:%s\n" % (key, str(args[key])))
+        f.close()
         args_obj.log_dir = train_key
         begin_trainer(args_obj)
         for key in backup:
