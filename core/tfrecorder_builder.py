@@ -5,6 +5,7 @@ import math
 import sys
 from slim.dataset import dataset_utils
 import shutil
+import glob
 
 # Seed for repeatability.
 _RANDOM_SEED = 0
@@ -37,8 +38,8 @@ def _get_filenames_and_classes(dataset_dir):
 
     photo_filenames = []
     for directory in directories:
-        for filename in os.listdir(directory):
-            path = os.path.join(directory, filename)
+        for path in glob.glob(os.path.join(directory, "*.jpg")):
+            # path = os.path.join(directory, filename)
             photo_filenames.append(path)
 
     return photo_filenames, sorted(class_names)

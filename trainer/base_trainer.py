@@ -224,6 +224,9 @@ class Trainer:
         while True:
             try:
                 batch_xs, batch_ys = self.train_dataset.get_next_batch()
+                if len(batch_xs) != self.config.batch_size:
+                    print("ealry stop!")
+                    continue
                 _, accuracy, loss, global_step, logits, pred_idx = self.sess.run(
                     [self.train_op, self.accuracy_op, self.loss_op, self.global_step, self.logits,
                      self.pred_idx_op],
@@ -301,6 +304,8 @@ class Trainer:
         while True:
             try:
                 batch_xs, batch_ys = self.validation_dataset.get_next_batch()
+                if len(batch_xs) != self.config.validation_batch_size:
+                    continue
                 accuracy, loss, global_step, logits, pred_idx = self.sess.run(
                     [self.accuracy_op, self.loss_op, self.global_step, self.logits, self.pred_idx_op],
                     feed_dict={self.inputs: batch_xs, self.labels: batch_ys, self.is_training: False})
@@ -474,3 +479,5 @@ class Trainer:
 def main(config):
     trainer = Trainer(config)
     trainer.run()
+    if trainer.sess:
+        trainer.sess.close()

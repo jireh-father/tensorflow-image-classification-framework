@@ -2,6 +2,7 @@ import tensorflow as tf
 from core import util
 import os, json
 from datetime import datetime
+import traceback
 
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
@@ -26,7 +27,7 @@ tf.app.flags.DEFINE_integer('num_parallel_readers', 4, "num_parallel_readers")
 tf.app.flags.DEFINE_boolean('cache_data', False, "cache_data")
 
 tf.app.flags.DEFINE_string('log_dir',
-                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
+                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint2"),
                            "save dir")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
@@ -160,9 +161,8 @@ def begin_trainer(flags):
         try:
             train_func(flags)
         except Exception as e:
-            print(type(e))
-            print(e.args)
-            print(e)
+            traceback.print_exc()
+        tf.reset_default_graph()
     else:
         print("failed to load trainer : %s" % trainer_path)
 
