@@ -1,6 +1,7 @@
 import tensorflow as tf
 from core import trainer
 import os, json
+import traceback
 from datetime import datetime
 
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
