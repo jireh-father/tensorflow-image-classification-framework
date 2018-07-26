@@ -6,7 +6,7 @@ from datetime import datetime
 tf.app.flags.DEFINE_string('config', "config.json", "config file path")
 tf.app.flags.DEFINE_string('dataset_name', "mnist", "dataset name")
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
-tf.app.flags.DEFINE_string('model_name', "base_model", "model name")
+tf.app.flags.DEFINE_string('model_name', "alexnet_v2", "model name")
 tf.app.flags.DEFINE_string('loss_file', "softmax_cross_entropy", "loss_file")
 tf.app.flags.DEFINE_integer('batch_size', 64, "batch_size")
 tf.app.flags.DEFINE_integer('validation_batch_size', 128, "validation_batch_size")
@@ -30,7 +30,7 @@ tf.app.flags.DEFINE_string('log_dir',
                            "save dir")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
-tf.app.flags.DEFINE_boolean('use_weighted_loss', True, "use_weighted_loss")
+tf.app.flags.DEFINE_boolean('use_weighted_loss', False, "use_weighted_loss")
 tf.app.flags.DEFINE_boolean('use_train_cam', True, "use_train_cam")
 tf.app.flags.DEFINE_boolean('use_validation_cam', True, "use_validation_cam")
 tf.app.flags.DEFINE_boolean('use_bounding_box_visualization', True, "use_bounding_box_visualization")
@@ -179,23 +179,24 @@ except TypeError:
 schedule_json = None
 if os.path.isfile(FLAGS.config):
     schedule_json = json.load(open(FLAGS.config))
+start_time = datetime.now().strftime('%Y%m%d%H%M%S')
 if not schedule_json:
     if not os.path.isabs(FLAGS.log_dir):
         log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
         args["log_dir"] = log_dir
+    args["log_dir"] = args["log_dir"] + "_" + start_time
     begin_trainer(Dict2Obj(args))
 else:
     backup = {}
-    start_time = datetime.now().strftime('%Y%m%d%H%M%S')
     for config in schedule_json:
         for key in config:
             backup[key] = args[key]
             args[key] = config[key]
         backup["log_dir"] = FLAGS.log_dir
-        if os.path.isabs(FLAGS.log_dir):
-            base_dir = FLAGS.log_dir
-        else:
-            base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint_%s" % start_time)
+        base_dir = FLAGS.log_dir
+        if not os.path.isabs(FLAGS.log_dir):
+            base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
+        base_dir = base_dir + "_" + start_time
         args_obj = Dict2Obj(args)
         train_key = make_train_key(base_dir, args_obj)
         if not os.path.isdir(train_key):

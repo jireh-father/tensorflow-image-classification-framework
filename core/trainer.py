@@ -6,7 +6,7 @@ from core import util, tfrecorder_builder
 import os, glob
 from datetime import datetime
 import numpy as np
-import cv2
+import cv2, traceback
 from tensorflow.contrib.tensorboard.plugins import projector
 from visualizer.grad_cam_plus_plus import GradCamPlusPlus
 from visualizer import embedding
@@ -71,6 +71,21 @@ class Trainer:
 
         self.restore_model()
 
+        total_parameters = 0
+
+        for variable in tf.trainable_variables():
+            # shape is an array of tf.Dimension
+            shape = variable.get_shape()
+            print(shape)
+            print(len(shape))
+            variable_parameters = 1
+            for dim in shape:
+                print(dim)
+                variable_parameters *= dim.value
+            print(variable_parameters)
+            total_parameters += variable_parameters
+        print("total!!!", total_parameters)
+
         stop = False
         for epoch in range(self.config.epoch):
             if self.config.train:
@@ -95,9 +110,6 @@ class Trainer:
                                       embedding_path=self.validation_embed_dir,
                                       image_size=self.config.input_size, channel=self.config.num_channel,
                                       labels=self.validation_embed_labels)
-
-        self.sess.close()
-        tf.reset_default_graph()
 
     def make_dataset(self):
         if self.config.dataset_name in dataset_factory.dataset_list:
@@ -133,9 +145,10 @@ class Trainer:
         self.summary_op = tf.summary.merge(list(summaries), name='summary_op')
 
         self.avg_loss_pl = tf.placeholder(tf.float32, (), "avg_loss_pl")
-        self.avg_loss_summary = tf.summary.scalar("average_loss", self.avg_loss_pl)
+        avg_loss_summary = tf.summary.scalar("average_loss", self.avg_loss_pl)
         self.avg_accuracy_pl = tf.placeholder(tf.float32, (), "avg_accuracy_pl")
-        self.avg_accuracy_summary = tf.summary.scalar("average_accuracy", self.avg_accuracy_pl)
+        avg_accuracy_summary = tf.summary.scalar("average_accuracy", self.avg_accuracy_pl)
+        self.avg_summary = tf.summary.merge([avg_accuracy_summary, avg_loss_summary])
 
     def init_config(self):
         label_path = os.path.join(self.config.dataset_dir, "labels.txt")
@@ -224,11 +237,14 @@ class Trainer:
         while True:
             try:
                 batch_xs, batch_ys = self.train_dataset.get_next_batch()
+
+                feed_dict = {self.inputs: batch_xs, self.labels: batch_ys,
+                             self.is_training: True}
+                if self.config.use_weighted_loss:
+                    feed_dict[self.class_weights_ph] = self.class_weights
                 _, accuracy, loss, global_step, logits, pred_idx = self.sess.run(
-                    [self.train_op, self.accuracy_op, self.loss_op, self.global_step, self.logits,
-                     self.pred_idx_op],
-                    feed_dict={self.inputs: batch_xs, self.labels: batch_ys,
-                               self.is_training: True, self.class_weights_ph: self.class_weights})
+                    [self.train_op, self.accuracy_op, self.loss_op, self.global_step, self.logits, self.pred_idx_op],
+                    feed_dict)
                 total_accuracy += accuracy
                 total_loss += loss
 
@@ -239,10 +255,7 @@ class Trainer:
                             now, global_step, epoch, step + 1, total_steps, accuracy, loss))
 
                     if self.config.use_summary:
-                        summary = self.sess.run(self.summary_op,
-                                                feed_dict={self.inputs: batch_xs, self.labels: batch_ys,
-                                                           self.is_training: True,
-                                                           self.class_weights_ph: self.class_weights})
+                        summary = self.sess.run(self.summary_op, feed_dict)
                         self.train_writer.add_summary(summary, global_step)
                 step += 1
 
@@ -301,9 +314,13 @@ class Trainer:
         while True:
             try:
                 batch_xs, batch_ys = self.validation_dataset.get_next_batch()
+                feed_dict = {self.inputs: batch_xs, self.labels: batch_ys, self.is_training: False}
+                if self.config.use_weighted_loss:
+                    feed_dict[self.class_weights_ph] = self.class_weights
+
                 accuracy, loss, global_step, logits, pred_idx = self.sess.run(
                     [self.accuracy_op, self.loss_op, self.global_step, self.logits, self.pred_idx_op],
-                    feed_dict={self.inputs: batch_xs, self.labels: batch_ys, self.is_training: False})
+                    feed_dict)
                 total_accuracy += accuracy
                 total_loss += loss
                 now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
@@ -313,9 +330,7 @@ class Trainer:
                         now, epoch, step + 1, total_steps,
                         accuracy, loss))
                 if self.config.use_summary:
-                    summary = self.sess.run(self.summary_op,
-                                            feed_dict={self.inputs: batch_xs, self.labels: batch_ys,
-                                                       self.is_training: False})
+                    summary = self.sess.run(self.summary_op, feed_dict)
                     self.validation_writer.add_summary(summary, global_step + step)
                 step += 1
 
@@ -337,12 +352,9 @@ class Trainer:
 
     def summary_average(self, epoch, avg_accuracy, avg_loss, is_train=True):
         if self.config.use_summary:
-            # avg_accuracy_summary = tf.summary.scalar("average_accuracy", tf.convert_to_tensor(avg_accuracy))
-            # avg_loss_summary = tf.summary.scalar("avg_loss", tf.convert_to_tensor(avg_loss))
             writer = self.train_writer if is_train else self.validation_writer
-            writer.add_summary(self.sess.run(tf.summary.merge([self.avg_accuracy_summary, self.avg_loss_summary]),
-                                             feed_dict={self.avg_accuracy_pl: avg_accuracy,
-                                                        self.avg_loss_pl: avg_loss}), epoch)
+            writer.add_summary(self.sess.run(self.avg_summary, feed_dict={self.avg_accuracy_pl: avg_accuracy,
+                                                                          self.avg_loss_pl: avg_loss}), epoch)
 
     def add_embedding(self, xs, ys, logits, predict_idx, is_train=True):
         if is_train:
@@ -399,9 +411,6 @@ class Trainer:
                 self.validation_embed_dataset = np.append(xs, self.validation_embed_dataset, axis=0)
                 self.validation_embed_labels = np.append(tmp_labels, self.validation_embed_labels, axis=0)
                 self.validation_embed_activations = np.append(logits, self.validation_embed_activations, axis=0)
-
-    def inference(self):
-        pass
 
     def restore_model(self):
         if self.config.restore_model_path and len(
@@ -473,4 +482,10 @@ class Trainer:
 
 def main(config):
     trainer = Trainer(config)
-    trainer.run()
+    try:
+        trainer.run()
+    except Exception as e:
+        traceback.print_exc()
+    if trainer.sess is not None:
+        trainer.sess.close()
+    tf.reset_default_graph()

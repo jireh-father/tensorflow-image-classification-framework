@@ -19,6 +19,32 @@ from slim.preprocessing import lenet_preprocessing
 from slim.preprocessing import vgg_preprocessing
 from slim.preprocessing import cifarnet_preprocessing
 
+preprocessing_fn_map = {
+    'cifarnet': cifarnet_preprocessing,
+    'inception': inception_preprocessing,
+    'inception_v1': inception_preprocessing,
+    'inception_v2': inception_preprocessing,
+    'inception_v3': inception_preprocessing,
+    'inception_v4': inception_preprocessing,
+    'inception_resnet_v2': inception_preprocessing,
+    'lenet': lenet_preprocessing,
+    'mobilenet_v1': inception_preprocessing,
+    'nasnet_mobile': inception_preprocessing,
+    'nasnet_large': inception_preprocessing,
+    'resnet_v1_50': vgg_preprocessing,
+    'resnet_v1_101': vgg_preprocessing,
+    'resnet_v1_152': vgg_preprocessing,
+    'resnet_v1_200': vgg_preprocessing,
+    'resnet_v2_50': vgg_preprocessing,
+    'resnet_v2_101': vgg_preprocessing,
+    'resnet_v2_152': vgg_preprocessing,
+    'resnet_v2_200': vgg_preprocessing,
+    'vgg': vgg_preprocessing,
+    'vgg_a': vgg_preprocessing,
+    'vgg_16': vgg_preprocessing,
+    'vgg_19': vgg_preprocessing,
+}
+
 
 def get_preprocessing(name, is_training=False):
     """Returns preprocessing_fn(image, height, width, **kwargs).
@@ -36,31 +62,6 @@ def get_preprocessing(name, is_training=False):
     Raises:
       ValueError: If Preprocessing `name` is not recognized.
     """
-    preprocessing_fn_map = {
-        'cifarnet': cifarnet_preprocessing,
-        'inception': inception_preprocessing,
-        'inception_v1': inception_preprocessing,
-        'inception_v2': inception_preprocessing,
-        'inception_v3': inception_preprocessing,
-        'inception_v4': inception_preprocessing,
-        'inception_resnet_v2': inception_preprocessing,
-        'lenet': lenet_preprocessing,
-        'mobilenet_v1': inception_preprocessing,
-        'nasnet_mobile': inception_preprocessing,
-        'nasnet_large': inception_preprocessing,
-        'resnet_v1_50': vgg_preprocessing,
-        'resnet_v1_101': vgg_preprocessing,
-        'resnet_v1_152': vgg_preprocessing,
-        'resnet_v1_200': vgg_preprocessing,
-        'resnet_v2_50': vgg_preprocessing,
-        'resnet_v2_101': vgg_preprocessing,
-        'resnet_v2_152': vgg_preprocessing,
-        'resnet_v2_200': vgg_preprocessing,
-        'vgg': vgg_preprocessing,
-        'vgg_a': vgg_preprocessing,
-        'vgg_16': vgg_preprocessing,
-        'vgg_19': vgg_preprocessing,
-    }
 
     if name not in preprocessing_fn_map:
         raise ValueError('Preprocessing name [%s] was not recognized' % name)

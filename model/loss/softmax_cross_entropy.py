@@ -5,8 +5,7 @@ import re
 
 def build_loss(logits, labels, global_step, class_weights_ph, config):
     if config.use_weighted_loss:
-        indices = tf.argmax(labels)
-        logits_class_weights = tf.gather(class_weights_ph, indices)
+        logits_class_weights = tf.reduce_sum(labels * class_weights_ph, axis=1)
         loss_op = tf.losses.softmax_cross_entropy(labels, logits, weights=logits_class_weights)
     else:
         if hasattr(tf.nn, "softmax_cross_entropy_with_logits_v2"):

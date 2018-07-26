@@ -1,9 +1,8 @@
 [
   {
-    "model_name": "base_model",
-    "steps_per_epoch": 25
-  },
-  {
-    "model_name": "alexnet_v2"
+    "model_name": "simple_mnist_model",
+    "num_dataset_split": 1,
+    "num_parallel_calls": 1,
+    "num_parallel_readers": 1
   }
 ]
