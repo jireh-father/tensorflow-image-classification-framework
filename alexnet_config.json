@@ -1,0 +1,13 @@
+[
+  {
+    "model_name": "alexnet_original",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 128,
+    "optimizer": "momentum",
+    "weight_decay": 0.0005,
+    "end_learning_rate": 0.00001,
+    "learning_rate_decay_factor": 0.1
+  }
+]

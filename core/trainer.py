@@ -237,7 +237,6 @@ class Trainer:
         while True:
             try:
                 batch_xs, batch_ys = self.train_dataset.get_next_batch()
-
                 feed_dict = {self.inputs: batch_xs, self.labels: batch_ys,
                              self.is_training: True}
                 if self.config.use_weighted_loss:

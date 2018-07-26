@@ -63,30 +63,23 @@ class Dataset(object):
                     }
 
         parsed_features = tf.parse_single_example(example_proto, features)
-        image = tf.image.decode_image(parsed_features["image/encoded"], self.config.num_channel)
-        preprocessed = False
+
         if self.config.preprocessing_name and self.config.preprocessing_name in preprocessing_factory.preprocessing_fn_map:
             image_preprocessing_fn = preprocessing_factory.get_preprocessing(self.config.preprocessing_name,
                                                                              is_training=is_training)
-
+            image = tf.image.decode_image(parsed_features["image/encoded"], self.config.num_channel)
             image = tf.clip_by_value(
                 image_preprocessing_fn(image, tf.convert_to_tensor(self.config.input_size),
                                        tf.convert_to_tensor(self.config.input_size)), -1, 1.0)
-            preprocessed = True
-        elif self.config.preprocessing_name:
-            glob.glob("./preprocessing/*.py")
-            preprocessing_files = os.listdir("./preprocessing")
-            preprocessing_f = util.get_attr('preprocessing.%s' % preprocessing_files, "preprocessing")
-
-            if preprocessing_f:
-                image = preprocessing_f(image, tf.convert_to_tensor(self.config.input_size),
-                                        tf.convert_to_tensor(self.config.input_size))
-                preprocessed = True
-
-        if not preprocessed:
-            image = tf.image.resize_images(image, [tf.convert_to_tensor(self.config.input_size),
-                                                   tf.convert_to_tensor(self.config.input_size)])
-            image = tf.clip_by_value(tf.image.per_image_standardization(image), -1., 1.0)
+        else:
+            if not self.config.preprocessing_name:
+                self.config.preprocessing_name = "base_preprocessing"
+            preprocessing_f = util.get_attr('preprocessing.%s' % self.config.preprocessing_name, "preprocessing")
+            if not preprocessing_f:
+                preprocessing_f = util.get_attr('preprocessing.base_preprocessing', "preprocessing")
+            image = tf.image.decode_jpeg(parsed_features["image/encoded"], self.config.num_channel)
+            image = preprocessing_f(image, tf.convert_to_tensor(self.config.input_size),
+                                    tf.convert_to_tensor(self.config.input_size), is_training)
 
         if len(parsed_features["image/class/label"].get_shape()) == 0:
             label = tf.one_hot(parsed_features["image/class/label"], self.config.num_class)
@@ -94,6 +87,46 @@ class Dataset(object):
             label = parsed_features["image/class/label"]
 
         return image, label
+
+    # def pre_process(self, example_proto, is_training):
+    #     features = {"image/encoded": tf.FixedLenFeature((), tf.string, default_value=""),
+    #                 "image/class/label": tf.FixedLenFeature((), tf.int64, default_value=0),
+    #                 'image/height': tf.FixedLenFeature((), tf.int64, default_value=0),
+    #                 'image/width': tf.FixedLenFeature((), tf.int64, default_value=0)
+    #                 }
+    #
+    #     parsed_features = tf.parse_single_example(example_proto, features)
+    #     image = tf.image.decode_image(parsed_features["image/encoded"], self.config.num_channel)
+    #     preprocessed = False
+    #     if self.config.preprocessing_name and self.config.preprocessing_name in preprocessing_factory.preprocessing_fn_map:
+    #         image_preprocessing_fn = preprocessing_factory.get_preprocessing(self.config.preprocessing_name,
+    #                                                                          is_training=is_training)
+    #
+    #         image = tf.clip_by_value(
+    #             image_preprocessing_fn(image, tf.convert_to_tensor(self.config.input_size),
+    #                                    tf.convert_to_tensor(self.config.input_size)), -1, 1.0)
+    #         preprocessed = True
+    #     elif self.config.preprocessing_name:
+    #         glob.glob("./preprocessing/*.py")
+    #         preprocessing_files = os.listdir("./preprocessing")
+    #         preprocessing_f = util.get_attr('preprocessing.%s' % preprocessing_files, "preprocessing")
+    #
+    #         if preprocessing_f:
+    #             image = preprocessing_f(image, tf.convert_to_tensor(self.config.input_size),
+    #                                     tf.convert_to_tensor(self.config.input_size))
+    #             preprocessed = True
+    #
+    #     if not preprocessed:
+    #         image = tf.image.resize_images(image, [tf.convert_to_tensor(self.config.input_size),
+    #                                                tf.convert_to_tensor(self.config.input_size)])
+    #         image = tf.clip_by_value(tf.image.per_image_standardization(image), -1., 1.0)
+    #
+    #     if len(parsed_features["image/class/label"].get_shape()) == 0:
+    #         label = tf.one_hot(parsed_features["image/class/label"], self.config.num_class)
+    #     else:
+    #         label = parsed_features["image/class/label"]
+    #
+    #     return image, label
 
     def train_dataset_map(self, example_proto, batch_position=0):
         return self.pre_process(example_proto, True)

@@ -32,7 +32,7 @@ def build_model(class_weights_ph, config):
         if not build_model_f:
             return None
         if not config.input_size:
-            config.input_size = util.get_attr('model.%s' % config.model_name, "input_size")
+            config.input_size = util.get_attr('model.%s' % config.model_name, "default_image_size")
             if not config.input_size:
                 config.input_size = 224
         default_last_conv_name = util.get_attr('model.%s' % config.model_name, "default_last_conv_name")
