@@ -185,7 +185,8 @@ def preprocess_for_train(image, height, width, bbox,
                                shape=[1, 1, 4])
         if image.dtype != tf.float32:
             image = tf.image.convert_image_dtype(image, dtype=tf.float32)
-        # Each bounding box has shape [1, num_boxes, box coords] and
+        #
+        #  Each bounding box has shape [1, num_boxes, box coords] and
         # the coordinates are ordered [ymin, xmin, ymax, xmax].
         image_with_box = tf.image.draw_bounding_boxes(tf.expand_dims(image, 0),
                                                       bbox)

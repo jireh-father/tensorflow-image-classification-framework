@@ -1,0 +1,10 @@
+[
+  {
+    "model_name": "lenet5_original",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 128,
+    "preprocessing_name": "lenet_preprocessing"
+  }
+]

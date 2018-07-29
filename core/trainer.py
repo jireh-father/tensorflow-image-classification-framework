@@ -57,59 +57,46 @@ class Trainer:
         self.class_weights_ph = None
 
     def run(self):
-        self.make_dataset()
+        with tf.name_scope(self.config.model_name):
+            self.make_dataset()
 
-        self.init_config()
+            self.init_config()
 
-        self.init_model()
+            self.init_model()
 
-        self.init_dataset()
+            self.init_dataset()
 
-        self.summary()
+            self.summary()
 
-        self.init_session()
+            self.init_session()
 
-        self.restore_model()
+            self.restore_model()
 
-        total_parameters = 0
+            stop = False
+            for epoch in range(self.config.epoch):
+                if self.config.train:
+                    stop = self.train(epoch)
 
-        for variable in tf.trainable_variables():
-            # shape is an array of tf.Dimension
-            shape = variable.get_shape()
-            print(shape)
-            print(len(shape))
-            variable_parameters = 1
-            for dim in shape:
-                print(dim)
-                variable_parameters *= dim.value
-            print(variable_parameters)
-            total_parameters += variable_parameters
-        print("total!!!", total_parameters)
+                if self.config.validation:
+                    self.validate(epoch)
 
-        stop = False
-        for epoch in range(self.config.epoch):
-            if self.config.train:
-                stop = self.train(epoch)
+                    if epoch % self.config.validation_embed_visualization_interval == 0 and self.validation_embed_activations is not None:
+                        embedding.add_embedding(self.validation_projector_config, sess=self.sess,
+                                                embedding_list=[self.validation_embed_activations],
+                                                embedding_path=self.validation_embed_dir,
+                                                image_size=self.config.input_size,
+                                                channel=self.config.num_channel, labels=self.validation_embed_labels,
+                                                prefix="epoch" + str(epoch))
 
-            if self.config.validation:
-                self.validate(epoch)
-
-                if epoch % self.config.validation_embed_visualization_interval == 0 and self.validation_embed_activations is not None:
-                    embedding.add_embedding(self.validation_projector_config, sess=self.sess,
-                                            embedding_list=[self.validation_embed_activations],
-                                            embedding_path=self.validation_embed_dir, image_size=self.config.input_size,
-                                            channel=self.config.num_channel, labels=self.validation_embed_labels,
-                                            prefix="epoch" + str(epoch))
-
-                if not self.config.train:
+                    if not self.config.train:
+                        break
+                if self.config.train and stop:
                     break
-            if self.config.train and stop:
-                break
-        if self.config.validation and self.config.use_validation_embed_visualization and self.validation_embed_dataset is not None:
-            embedding.write_embedding(self.validation_projector_config, self.sess, self.validation_embed_dataset,
-                                      embedding_path=self.validation_embed_dir,
-                                      image_size=self.config.input_size, channel=self.config.num_channel,
-                                      labels=self.validation_embed_labels)
+            if self.config.validation and self.config.use_validation_embed_visualization and self.validation_embed_dataset is not None:
+                embedding.write_embedding(self.validation_projector_config, self.sess, self.validation_embed_dataset,
+                                          embedding_path=self.validation_embed_dir,
+                                          image_size=self.config.input_size, channel=self.config.num_channel,
+                                          labels=self.validation_embed_labels)
 
     def make_dataset(self):
         if self.config.dataset_name in dataset_factory.dataset_list:
@@ -125,6 +112,7 @@ class Trainer:
         if not self.config.use_summary:
             return
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+        print("summaries", summaries)
 
         for end_point in self.end_points:
             x = self.end_points[end_point]
@@ -141,7 +129,6 @@ class Trainer:
             Trainer.variable_summaries(variable, summaries)
         if self.config.train:
             summaries.add(tf.summary.scalar('learning_rate', self.learning_rate))
-
         self.summary_op = tf.summary.merge(list(summaries), name='summary_op')
 
         self.avg_loss_pl = tf.placeholder(tf.float32, (), "avg_loss_pl")
@@ -233,7 +220,7 @@ class Trainer:
         self.train_embed_labels = None
         self.train_embed_activations = None
         self.train_embed_dataset = None
-
+        print("in train")
         while True:
             try:
                 batch_xs, batch_ys = self.train_dataset.get_next_batch()
