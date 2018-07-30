@@ -8,12 +8,17 @@ def build_model(inputs, config, is_training):
     end_points = {}
     print(inputs)
     net = tf.layers.conv2d(inputs, 6, 5, padding="VALID", name="conv1")
-    net = tf.layers.conv2d(net, 6, 2, 2, padding="VALID", name="pool2", activation=tf.nn.sigmoid)
+    net = 1.7159 * tf.nn.tanh((2 / 3) * net)
+    net = tf.layers.conv2d(net, 6, 2, 2, padding="VALID", name="pool2")
+    net = 1.7159 * tf.nn.tanh((2 / 3) * net)
     # todo: sparse channel
     net = tf.layers.conv2d(net, 16, 5, padding="VALID", name="conv3")
-    net = tf.layers.conv2d(net, 6, 2, 2, padding="VALID", name="pool4", activation=tf.nn.sigmoid)
+    net = 1.7159 * tf.nn.tanh((2 / 3) * net)
+    net = tf.layers.conv2d(net, 6, 2, 2, padding="VALID", name="pool4")
+    net = 1.7159 * tf.nn.tanh((2 / 3) * net)
     net = tf.layers.conv2d(net, 120, 5, padding="VALID", name="conv5")
     end_points['conv5'] = net
+    net = 1.7159 * tf.nn.tanh((2 / 3) * net)
     net = tf.reshape(net, [-1, 120], name="reshape")
     net = tf.layers.dense(net, 84, name="fc6")
     # sigmoid or tanh?

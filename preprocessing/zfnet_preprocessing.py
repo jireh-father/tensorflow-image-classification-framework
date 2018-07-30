@@ -2,6 +2,7 @@ import tensorflow as tf
 
 
 def train(image, w, h, config):
+    # todo:
     print("in preprocessing")
     image = tf.image.resize_image_with_crop_or_pad(image, 256, 256)
     tf.summary.image('original_image', tf.expand_dims(image, 0), max_outputs=10)
@@ -17,7 +18,6 @@ def train(image, w, h, config):
 
 
 def validation(image, w, h, config):
-    # todo: voting ensemble
     image = tf.image.resize_image_with_crop_or_pad(image, h, w)
     image = tf.image.random_flip_left_right(image)
     if config.num_channel == 3:
