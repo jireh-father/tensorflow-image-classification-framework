@@ -3,7 +3,6 @@ import tensorflow as tf
 
 def train(image, w, h, config):
     # todo: corner crops and center crop and filp
-    print("in preprocessing")
     image = tf.image.resize_image_with_crop_or_pad(image, 256, 256)
     tf.summary.image('original_image', tf.expand_dims(image, 0), max_outputs=10)
     image = tf.random_crop(image, [h, w, config.num_channel])

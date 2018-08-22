@@ -220,7 +220,6 @@ class Trainer:
         self.train_embed_labels = None
         self.train_embed_activations = None
         self.train_embed_dataset = None
-        print("in train")
         while True:
             try:
                 batch_xs, batch_ys = self.train_dataset.get_next_batch()

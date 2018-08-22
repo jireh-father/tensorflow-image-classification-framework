@@ -142,7 +142,7 @@ def make_tfrecord(dataset_name, dataset_dir, train_fraction=0.9, num_channels=3,
     random.seed(_RANDOM_SEED)
     photo_filenames, class_names = _get_filenames_and_classes(dataset_dir)
 
-    print("Now let's start making the tfrecord dataset files!")
+    print("Now let's start to make the tfrecord dataset files!")
     random.shuffle(photo_filenames)
     num_train = int(len(photo_filenames) * train_fraction)
     training_filenames = photo_filenames[:num_train]
