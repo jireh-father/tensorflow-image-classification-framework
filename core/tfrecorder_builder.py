@@ -37,10 +37,12 @@ def _get_filenames_and_classes(dataset_dir):
             class_names.append(filename)
 
     photo_filenames = []
+    exts = ["jpg", "JPEG", "JPG", "jpeg"]
     for directory in directories:
-        for path in glob.glob(os.path.join(directory, "*.jpg")):
-            # path = os.path.join(directory, filename)
-            photo_filenames.append(path)
+        for ext in exts:
+            for path in glob.glob(os.path.join(directory, "*.%s" % ext)):
+                # path = os.path.join(directory, filename)
+                photo_filenames.append(path)
 
     return photo_filenames, sorted(class_names)
 
