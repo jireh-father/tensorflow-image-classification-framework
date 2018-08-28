@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def residual_block(net, block, repeat, name, use_stride=True, use_projection=True):
+def residual_block(net, block, repeat, name, use_stride=True, use_projection=True, is_training=None):
     for i in range(repeat):
         short_cut = net
         for j, filter in enumerate(block):
@@ -11,7 +11,7 @@ def residual_block(net, block, repeat, name, use_stride=True, use_projection=Tru
                 print("stride")
             net = tf.layers.conv2d(net, filter[1], filter[0], stride, 'same', name="%s_%d_%d" % (name, i, j),
                                    use_bias=False)
-            # net = tf.layers.batch_normalization(net)
+            net = tf.layers.batch_normalization(net, training=is_training)
             print(net)
             if j > len(block) - 1:
                 net = tf.nn.relu(net, name="%s_relu_%d_%d" % (name, i, j))
@@ -50,10 +50,10 @@ def build_model(input, config, is_training):
     # net = tf.layers.batch_normalization(net)
     net = tf.nn.relu(net)
     net = tf.layers.max_pooling2d(net, 3, 2, padding="same", name="pool1")
-    net = residual_block(net, [[3, 64], [3, 64]], 2, "conv2", False)
-    net = residual_block(net, [[3, 128], [3, 128]], 2, "conv3", True, use_projection)
-    net = residual_block(net, [[3, 256], [3, 256]], 2, "conv4", True, use_projection)
-    net = residual_block(net, [[3, 512], [3, 512]], 2, "conv5", True, use_projection)
+    net = residual_block(net, [[3, 64], [3, 64]], 2, "conv2", False, is_training=is_training)
+    net = residual_block(net, [[3, 128], [3, 128]], 2, "conv3", True, use_projection, is_training=is_training)
+    net = residual_block(net, [[3, 256], [3, 256]], 2, "conv4", True, use_projection, is_training=is_training)
+    net = residual_block(net, [[3, 512], [3, 512]], 2, "conv5", True, use_projection, is_training=is_training)
     end_points['conv5'] = net
     net = tf.reduce_mean(net, [1, 2], name='last_pool')
     print(net)
