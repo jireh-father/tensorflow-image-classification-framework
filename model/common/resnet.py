@@ -431,3 +431,69 @@ def resnet_101_fpn_merge(input, num_class=10, is_training=None):
     # net = tf.reduce_mean(conv5, [1, 2], name='last_pool')
     # net = tf.layers.dense(net, num_class, name='logits')
     return p2_logits
+
+
+def resnet_101_augnet(input, num_class=10, is_training=None):
+    net = tf.layers.conv2d(input, 64, 7, 2, 'same', name="conv1", use_bias=False)
+    net = tf.layers.batch_normalization(net, training=is_training)
+    net = tf.nn.relu(net)
+    net = tf.layers.max_pooling2d(net, 3, 2, padding="same", name="pool1")
+
+    conv2_ar1 = residual_block(net, [[1, 32], [3, 32], [1, 128]], 3, "conv2_ar1", False, is_training=is_training)
+    conv3_ar1 = residual_block(conv2_ar1, [[1, 64], [3, 64], [1, 256]], 4, "conv3_ar1", True, is_training)
+    conv4_ar1 = residual_block(conv3_ar1, [[1, 128], [3, 128], [1, 512]], 23, "conv4_ar1", True, is_training)
+    conv5_ar1 = residual_block(conv4_ar1, [[1, 256], [3, 256], [1, 1024]], 3, "conv5_ar1", True, is_training)
+
+    conv2_ar15 = residual_block(net, [[1, 32], [[3, 2], 32], [1, 128]], 3, "conv2_ar15", False, is_training=is_training)
+    conv3_ar15 = residual_block(conv2_ar15, [[1, 64], [[3, 2], 64], [1, 256]], 4, "conv3_ar15", True, is_training)
+    conv4_ar15 = residual_block(conv3_ar15, [[1, 128], [[3, 2], 128], [1, 512]], 23, "conv4_ar15", True, is_training)
+    conv5_ar15 = residual_block(conv4_ar15, [[1, 256], [[3, 2], 256], [1, 1024]], 3, "conv5_ar15", True, is_training)
+
+    conv2_ar07 = residual_block(net, [[1, 32], [[2, 3], 32], [1, 128]], 3, "conv2_ar07", False, is_training=is_training)
+    conv3_ar07 = residual_block(conv2_ar07, [[1, 64], [[2, 3], 64], [1, 256]], 4, "conv3_ar07", True, is_training)
+    conv4_ar07 = residual_block(conv3_ar07, [[1, 128], [[2, 3], 128], [1, 512]], 23, "conv4_ar07", True, is_training)
+    conv5_ar07 = residual_block(conv4_ar07, [[1, 256], [[2, 3], 256], [1, 1024]], 3, "conv5_ar07", True, is_training)
+
+    num_output_channel = 256
+    m5_ar1 = tf.layers.conv2d(conv5_ar1, num_output_channel, 1, padding='same')
+    m5_ar15 = tf.layers.conv2d(conv5_ar15, num_output_channel, 1, padding='same')
+    m5_ar07 = tf.layers.conv2d(conv5_ar07, num_output_channel, 1, padding='same')
+    m5 = tf.concat([m5_ar1, m5_ar15, m5_ar07], axis=3)
+    p5 = tf.layers.conv2d(m5, num_output_channel, 3, padding='same')
+
+    m4_ar1 = tf.layers.conv2d(conv4_ar1, num_output_channel, 1, padding='same')
+    m4_ar15 = tf.layers.conv2d(conv4_ar15, num_output_channel, 1, padding='same')
+    m4_ar07 = tf.layers.conv2d(conv4_ar07, num_output_channel, 1, padding='same')
+    m4 = tf.concat([m4_ar1, m4_ar15, m4_ar07], axis=3)
+    p4 = tf.layers.conv2d(m4, num_output_channel, 3, padding='same')
+
+    m3_ar1 = tf.layers.conv2d(conv3_ar1, num_output_channel, 1, padding='same')
+    m3_ar15 = tf.layers.conv2d(conv3_ar15, num_output_channel, 1, padding='same')
+    m3_ar07 = tf.layers.conv2d(conv3_ar07, num_output_channel, 1, padding='same')
+    m3 = tf.concat([m3_ar1, m3_ar15, m3_ar07], axis=3)
+    p3 = tf.layers.conv2d(m3, num_output_channel, 3, padding='same')
+
+    m2_ar1 = tf.layers.conv2d(conv2_ar1, num_output_channel, 1, padding='same')
+    m2_ar15 = tf.layers.conv2d(conv2_ar15, num_output_channel, 1, padding='same')
+    m2_ar07 = tf.layers.conv2d(conv2_ar07, num_output_channel, 1, padding='same')
+    m2 = tf.concat([m2_ar1, m2_ar15, m2_ar07], axis=3)
+    p2 = tf.layers.conv2d(m2, num_output_channel, 3, padding='same')
+
+    p5_conv1 = tf.layers.conv2d(p5, num_output_channel, 3, padding='same', name="classifier_conv1")
+    p4_conv1 = tf.layers.conv2d(p4, num_output_channel, 3, padding='same', name="classifier_conv1", reuse=True)
+    p3_conv1 = tf.layers.conv2d(p3, num_output_channel, 3, padding='same', name="classifier_conv1", reuse=True)
+    p2_conv1 = tf.layers.conv2d(p2, num_output_channel, 3, padding='same', name="classifier_conv1", reuse=True)
+
+    p5_conv2 = tf.layers.conv2d(p5_conv1, num_class, 1, padding='same', name="classifier_output")
+    p4_conv2 = tf.layers.conv2d(p4_conv1, num_class, 1, padding='same', name="classifier_output", reuse=True)
+    p3_conv2 = tf.layers.conv2d(p3_conv1, num_class, 1, padding='same', name="classifier_output", reuse=True)
+    p2_conv2 = tf.layers.conv2d(p2_conv1, num_class, 1, padding='same', name="classifier_output", reuse=True)
+
+    p5_logits = tf.reduce_mean(p5_conv2, [1, 2])
+    p4_logits = tf.reduce_mean(p4_conv2, [1, 2])
+    p3_logits = tf.reduce_mean(p3_conv2, [1, 2])
+    p2_logits = tf.reduce_mean(p2_conv2, [1, 2])
+
+    # net = tf.reduce_mean(conv5, [1, 2], name='last_pool')
+    # net = tf.layers.dense(net, num_class, name='logits')
+    return [p5_logits, p4_logits, p3_logits, p2_logits]
