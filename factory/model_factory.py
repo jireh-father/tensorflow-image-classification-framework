@@ -58,5 +58,6 @@ def build_model(class_weights_ph, config):
 
     if loss_f:
         ops = loss_f(logits, labels, global_step, class_weights_ph, config)
-
+    if isinstance(logits, list):
+        logits = logits[0]
     return inputs, labels, logits, end_points, is_training, global_step, default_last_conv_name, ops
