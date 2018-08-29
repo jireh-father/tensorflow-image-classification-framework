@@ -147,9 +147,9 @@ def resnet_50_fpn_merge(input, num_class=10, is_training=None):
         conv2.get_shape()[1]), int(conv2.get_shape()[2])), 1)
     p2 = tf.layers.conv2d(m2, num_output_channel, 3, padding='same')
 
-    p2_conv1 = tf.layers.conv2d(p2, num_output_channel, 3, padding='same', name="classifier_conv1", reuse=True)
+    p2_conv1 = tf.layers.conv2d(p2, num_output_channel, 3, padding='same', name="classifier_conv1")
 
-    p2_conv2 = tf.layers.conv2d(p2_conv1, num_class, 1, padding='same', name="classifier_output", reuse=True)
+    p2_conv2 = tf.layers.conv2d(p2_conv1, num_class, 1, padding='same', name="classifier_output")
 
     p2_logits = tf.reduce_mean(p2_conv2, [1, 2])
 
