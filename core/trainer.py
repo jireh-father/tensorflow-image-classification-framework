@@ -124,10 +124,9 @@ class Trainer:
 
         # accuracy
         summaries.add(tf.summary.scalar('accuracy', self.accuracy_op))
-
-        for variable in tf.get_collection(
-          tf.GraphKeys.TRAINABLE_VARIABLES) and self.config.use_trainable_variable_summary:
-            Trainer.variable_summaries(variable, summaries)
+        if self.config.use_trainable_variable_summary:
+            for variable in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+                Trainer.variable_summaries(variable, summaries)
         if self.config.train:
             summaries.add(tf.summary.scalar('learning_rate', self.learning_rate))
         self.summary_op = tf.summary.merge(list(summaries), name='summary_op')

@@ -47,6 +47,34 @@ def resnet_18(input, num_class=10, is_training=None):
     return net
 
 
+def resnet_18_mar(input, num_class=10, is_training=None):
+    net = tf.layers.conv2d(input, 64, 7, 2, 'same', name="conv1", use_bias=False)
+    net = tf.layers.batch_normalization(net, training=is_training)
+    net = tf.nn.relu(net)
+    net = tf.layers.max_pooling2d(net, 3, 2, padding="same", name="pool1")
+
+    conv2_ar1 = residual_block(net, [[3, 32], [3, 32]], 2, "conv2_ar1", False, is_training=is_training)
+    conv3_ar1 = residual_block(conv2_ar1, [[3, 64], [3, 64]], 2, "conv3_ar1", True, is_training)
+    conv4_ar1 = residual_block(conv3_ar1, [[3, 128], [3, 128]], 2, "conv4_ar1", True, is_training)
+    conv5_ar1 = residual_block(conv4_ar1, [[3, 256], [3, 256]], 2, "conv5_ar1", True, is_training)
+
+    conv2_ar3 = residual_block(net, [[[3, 1], 32], [[3, 1], 32]], 2, "conv2_ar3", False, is_training=is_training)
+    conv3_ar3 = residual_block(conv2_ar3, [[[3, 1], 64], [[3, 1], 64]], 2, "conv3_ar3", True, is_training)
+    conv4_ar3 = residual_block(conv3_ar3, [[[3, 1], 128], [[3, 1], 128]], 2, "conv4_ar3", True, is_training)
+    conv5_ar3 = residual_block(conv4_ar3, [[[3, 1], 256], [[3, 1], 256]], 2, "conv5_ar3", True, is_training)
+
+    conv2_ar03 = residual_block(net, [[[1, 3], 32], [[1, 3], 32]], 2, "conv2_ar03", False, is_training=is_training)
+    conv3_ar03 = residual_block(conv2_ar03, [[[1, 3], 64], [[1, 3], 64]], 2, "conv3_ar03", True, is_training)
+    conv4_ar03 = residual_block(conv3_ar03, [[[1, 3], 128], [[1, 3], 128]], 2, "conv4_ar03", True, is_training)
+    conv5_ar03 = residual_block(conv4_ar03, [[[1, 3], 256], [[1, 3], 256]], 2, "conv5_ar03", True, is_training)
+
+    conv5_merge = tf.concat([conv5_ar1, conv5_ar3, conv5_ar03], axis=3)
+    print(conv5_merge)
+    net = tf.reduce_mean(conv5_merge, [1, 2], name='last_pool')
+    net = tf.layers.dense(net, num_class, name='logits')
+    return net
+
+
 def resnet_34(input, num_class=10, is_training=None):
     net = tf.layers.conv2d(input, 64, 7, 2, 'same', name="conv1", use_bias=False)
     net = tf.layers.batch_normalization(net, training=is_training)
