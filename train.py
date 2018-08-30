@@ -19,6 +19,7 @@ tf.app.flags.DEFINE_string('validation_name', "validation", "validation dataset 
 tf.app.flags.DEFINE_boolean('train', True, "train")
 tf.app.flags.DEFINE_boolean('validation', True, "validation")
 tf.app.flags.DEFINE_boolean('use_summary', True, "use_summary")
+tf.app.flags.DEFINE_boolean('use_trainable_variable_summary', False, "use_trainable_variable_summary")
 tf.app.flags.DEFINE_float('train_fraction', 0.9, "train_fraction")
 tf.app.flags.DEFINE_integer('num_channel', 1, "num channel")
 tf.app.flags.DEFINE_integer('num_dataset_split', 4, "num_dataset_split")
