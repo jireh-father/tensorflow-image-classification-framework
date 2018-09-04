@@ -1,0 +1,56 @@
+[
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "imagenet_2012",
+    "dataset_dir": "/home/data2/imagenet_2012/train",
+    "batch_size": 64,
+    "num_channel": 3,
+    "optimizer": "adam"
+  }
+]

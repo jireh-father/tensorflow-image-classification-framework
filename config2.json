@@ -1,0 +1,56 @@
+[
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18_mar",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  },
+  {
+    "model_name": "resnet_18",
+    "epoch": 20,
+    "dataset_name": "mnist",
+    "dataset_dir": "./mnist",
+    "batch_size": 16,
+    "num_channel": 1,
+    "optimizer": "adam"
+  }
+]
