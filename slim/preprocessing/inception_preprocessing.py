@@ -264,6 +264,7 @@ def preprocess_for_eval(image, height, width,
         # Crop the central region of the image with an area containing 87.5% of
         # the original image.
         if central_fraction:
+            image.set_shape([None, None, 3])
             image = tf.image.central_crop(image, central_fraction=central_fraction)
 
         if height and width:

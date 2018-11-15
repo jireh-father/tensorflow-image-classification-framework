@@ -5,6 +5,7 @@ default_last_conv_name = 'conv5'
 
 
 def fire_module(inputs, s_filters, e_1x1_filters, e_3x3_filters, name):
+    s_filters *= 2
     squeeze = tf.layers.conv2d(inputs, s_filters, 1, padding="SAME", name=name + "_squeeze", activation=tf.nn.relu,
                                kernel_initializer=tf.contrib.layers.xavier_initializer())
 

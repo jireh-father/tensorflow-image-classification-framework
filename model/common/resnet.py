@@ -47,6 +47,20 @@ def resnet_18(input, num_class=10, is_training=None):
     return net
 
 
+def random_resnet_18(input, num_class=10, is_training=None):
+    net = tf.layers.conv2d(input, 64, 7, 2, 'same', name="conv1", use_bias=False)
+    net = tf.layers.batch_normalization(net, training=is_training)
+    net = tf.nn.relu(net)
+    net = tf.layers.max_pooling2d(net, 3, 2, padding="same", name="pool1")
+    net = residual_block(net, [[3, 64], [3, 64]], 2, "conv2", False, is_training=is_training)
+    net = residual_block(net, [[3, 128], [3, 128]], 2, "conv3", True, is_training)
+    net = residual_block(net, [[3, 256], [3, 256]], 2, "conv4", True, is_training)
+    net = residual_block(net, [[3, 512], [3, 512]], 2, "conv5", True, is_training)
+    net = tf.reduce_mean(net, [1, 2], name='last_pool')
+    net = tf.layers.dense(net, num_class, name='logits')
+    return net
+
+
 def resnet_18_mar(input, num_class=10, is_training=None):
     net = tf.layers.conv2d(input, 64, 7, 2, 'same', name="conv1", use_bias=False)
     net = tf.layers.batch_normalization(net, training=is_training)

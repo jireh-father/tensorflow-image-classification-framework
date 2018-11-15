@@ -444,7 +444,7 @@ class Trainer:
             writer = self.train_writer
         else:
             writer = self.validation_writer
-        if self.config.use_train_cam and self.cam:
+        if (self.config.use_train_cam or self.config.use_validation_cam) and self.cam:
             # you have to fix this because of graph memory limit over!
             for key in self.heatmap_imgs:
                 self.cam.write_summary(writer, "grad_cam_epoch_%d_%s" % (epoch, key), self.heatmap_imgs[key],

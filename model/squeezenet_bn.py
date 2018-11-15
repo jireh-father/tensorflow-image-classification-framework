@@ -7,12 +7,14 @@ default_last_conv_name = 'conv5'
 def fire_module(inputs, s_filters, e_1x1_filters, e_3x3_filters, name):
     squeeze = tf.layers.conv2d(inputs, s_filters, 1, padding="SAME", name=name + "_squeeze", activation=tf.nn.relu,
                                kernel_initializer=tf.contrib.layers.xavier_initializer())
-
+    squeeze = tf.layers.batch_normalization(squeeze)
     e1x1 = tf.layers.conv2d(squeeze, e_1x1_filters, 1, padding="SAME", name=name + "_expend1x1", activation=tf.nn.relu,
                             kernel_initializer=tf.contrib.layers.xavier_initializer())
+    e1x1 = tf.layers.batch_normalization(e1x1)
 
     e3x3 = tf.layers.conv2d(squeeze, e_3x3_filters, 3, padding="SAME", name=name + "_expend3x3", activation=tf.nn.relu,
                             kernel_initializer=tf.contrib.layers.xavier_initializer())
+    e3x3 = tf.layers.batch_normalization(e3x3)
     return tf.concat([e1x1, e3x3], axis=3)
 
 
@@ -20,6 +22,7 @@ def build_model(inputs, config, is_training):
     end_points = {}
     net = tf.layers.conv2d(inputs, 96, 7, strides=2, padding="SAME", name="conv1", activation=tf.nn.relu,
                            kernel_initializer=tf.contrib.layers.xavier_initializer())
+    net = tf.layers.batch_normalization(net)
     print(net)
     net = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool1")
     print(net)
@@ -44,6 +47,7 @@ def build_model(inputs, config, is_training):
     net = tf.layers.dropout(net, 0.5, training=is_training)
     net = tf.layers.conv2d(net, config.num_class, 1, padding="VALID", name="conv10", activation=tf.nn.relu,
                            kernel_initializer=tf.contrib.layers.xavier_initializer())
+    net = tf.layers.batch_normalization(net)
     print(net)
     end_points['conv5'] = net
     # net = tf.reduce_mean(net, [1, 2], name='avg_pooling')

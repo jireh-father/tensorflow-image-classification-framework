@@ -21,26 +21,41 @@ def build_model(inputs, config, is_training):
     net = tf.layers.conv2d(inputs, 96, 7, strides=2, padding="SAME", name="conv1", activation=tf.nn.relu,
                            kernel_initializer=tf.contrib.layers.xavier_initializer())
     print(net)
-    net = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool1")
+    sc1 = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool1")
+
     print(net)
-    net = fire_module(net, 16, 64, 64, "fire2")
+    net = fire_module(sc1, 16, 64, 64, "fire2")
+
+    sc2 = tf.layers.conv2d(inputs=sc1, filters=int(net.get_shape()[3]), kernel_size=1, padding="SAME") + net
     print(net)
-    net = fire_module(net, 16, 64, 64, "fire3")
+    net = fire_module(sc2, 16, 64, 64, "fire3")
     print(net)
-    net = fire_module(net, 32, 128, 128, "fire4")
+    sc3 = net + sc2
+
+    net = fire_module(sc3, 32, 128, 128, "fire4")
+
+    net = tf.layers.conv2d(inputs=sc3, filters=int(net.get_shape()[3]), kernel_size=1, padding="SAME") + net
     print(net)
-    net = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool2")
-    net = fire_module(net, 32, 128, 128, "fire5")
+
+    sc4 = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool2")
+
+    net = fire_module(sc4, 32, 128, 128, "fire5")
+    sc5 = sc4 + net
     print(net)
-    net = fire_module(net, 48, 192, 192, "fire6")
+
+    net = fire_module(sc5, 48, 192, 192, "fire6")
+    sc6 = tf.layers.conv2d(inputs=sc5, filters=int(net.get_shape()[3]), kernel_size=1, padding="SAME") + net
+    print(sc6)
+    net = fire_module(sc6, 48, 192, 192, "fire7")
+    sc7 = sc6 + net
     print(net)
-    net = fire_module(net, 48, 192, 192, "fire7")
+    net = fire_module(sc7, 64, 256, 256, "fire8")
+    net = tf.layers.conv2d(inputs=sc7, filters=int(net.get_shape()[3]), kernel_size=1, padding="SAME") + net
     print(net)
-    net = fire_module(net, 64, 256, 256, "fire8")
+    sc8 = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool3")
+    net = fire_module(sc8, 64, 256, 256, "fire9")
     print(net)
-    net = tf.layers.max_pooling2d(inputs=net, pool_size=3, strides=2, name="pool3")
-    net = fire_module(net, 64, 256, 256, "fire9")
-    print(net)
+    net += sc8
     net = tf.layers.dropout(net, 0.5, training=is_training)
     net = tf.layers.conv2d(net, config.num_class, 1, padding="VALID", name="conv10", activation=tf.nn.relu,
                            kernel_initializer=tf.contrib.layers.xavier_initializer())

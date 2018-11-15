@@ -68,9 +68,7 @@ class Dataset(object):
             image_preprocessing_fn = preprocessing_factory.get_preprocessing(self.config.preprocessing_name,
                                                                              is_training=is_training)
             image = tf.image.decode_image(parsed_features["image/encoded"], self.config.num_channel)
-            image = tf.clip_by_value(
-                image_preprocessing_fn(image, tf.convert_to_tensor(self.config.input_size),
-                                       tf.convert_to_tensor(self.config.input_size)), -1, 1.0)
+            image = image_preprocessing_fn(image, self.config.input_size, self.config.input_size)
         else:
             if not self.config.preprocessing_name:
                 self.config.preprocessing_name = "base_preprocessing"
@@ -78,6 +76,8 @@ class Dataset(object):
             if not preprocessing_f:
                 preprocessing_f = util.get_attr('preprocessing.base_preprocessing', "preprocessing")
             image = tf.image.decode_jpeg(parsed_features["image/encoded"], self.config.num_channel)
+            self.config.image_w = parsed_features["image/width"]
+            self.config.image_h = parsed_features["image/height"]
             image = preprocessing_f(image, tf.convert_to_tensor(self.config.input_size),
                                     tf.convert_to_tensor(self.config.input_size), self.config, is_training)
 

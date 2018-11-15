@@ -6,6 +6,8 @@ import sys
 from slim.dataset import dataset_utils
 import shutil
 import glob
+import platform
+import numpy as np
 
 # Seed for repeatability.
 _RANDOM_SEED = 0
@@ -37,7 +39,10 @@ def _get_filenames_and_classes(dataset_dir):
             class_names.append(filename)
 
     photo_filenames = []
-    exts = ["jpg", "JPEG", "JPG", "jpeg"]
+    if platform.system() == 'Windows':
+        exts = ["jpg", "jpeg"]
+    else:
+        exts = ["jpg", "jpeg", "JPG", "JPEG"]
     for directory in directories:
         for ext in exts:
             for path in glob.glob(os.path.join(directory, "*.%s" % ext)):
@@ -143,13 +148,17 @@ def make_tfrecord(dataset_name, dataset_dir, train_fraction=0.9, num_channels=3,
 
     random.seed(_RANDOM_SEED)
     photo_filenames, class_names = _get_filenames_and_classes(dataset_dir)
-
     print("Now let's start to make the tfrecord dataset files!")
     random.shuffle(photo_filenames)
+
     num_train = int(len(photo_filenames) * train_fraction)
     training_filenames = photo_filenames[:num_train]
+    print("cnt", len(training_filenames))
+    labels_to_class_names = dict(zip(range(len(class_names)), class_names))
+    import json
+    json.dump(labels_to_class_names, open(os.path.join(dataset_dir, "labels.json"), "w+"))
+    np.save(os.path.join(dataset_dir, "file_names.npy"), training_filenames)
     validation_filenames = photo_filenames[num_train:]
-
     class_names_to_ids = dict(zip(class_names, range(len(class_names))))
     # First, convert the training and validation sets.
     _convert_dataset(dataset_name, 'train', training_filenames, class_names_to_ids, dataset_dir, num_shards,
