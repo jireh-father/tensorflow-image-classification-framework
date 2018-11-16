@@ -30,6 +30,8 @@ tf.app.flags.DEFINE_boolean('cache_data', False, "cache_data")
 tf.app.flags.DEFINE_string('log_dir',
                            os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
                            "save dir")
+
+tf.app.flags.DEFINE_integer('keep_checkpoint_max', 5, "keep_checkpoint_max")
 # tf.app.flags.DEFINE_string('restore_model_path', "checkpoint/model_epoch_9.ckpt", "model path to restore")
 tf.app.flags.DEFINE_string('restore_model_path', None, "model path to restore")
 tf.app.flags.DEFINE_boolean('use_weighted_loss', False, "use_weighted_loss")

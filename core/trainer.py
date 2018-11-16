@@ -59,7 +59,7 @@ class Trainer:
     def run(self):
         with tf.name_scope(self.config.model_name):
             self.make_dataset()
-
+            return
             self.init_config()
 
             self.init_model()
@@ -200,7 +200,7 @@ class Trainer:
         summary_dir = os.path.join(self.config.log_dir, "summary")
         self.train_writer = tf.summary.FileWriter(summary_dir + '/train', self.sess.graph)
         self.validation_writer = tf.summary.FileWriter(summary_dir + '/validation')
-        self.saver = tf.train.Saver(tf.global_variables())
+        self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.config.keep_checkpoint_max)
 
     def init_dataset(self):
         self.train_dataset = Dataset(self.sess, self.config.batch_size, self.config.use_train_shuffle, True,
@@ -401,7 +401,8 @@ class Trainer:
         if self.config.restore_model_path and len(
           glob.glob(self.config.restore_model_path + ".data-00000-of-00001")) > 0:
             print("Restore model! %s" % self.config.restore_model_path)
-            self.saver.restore(self.sess, self.config.restore_model_path)
+            self.saver.restore(self.sess, tf.train.latest_checkpoint(self.config.restore_model_path))
+            # self.saver.restore(self.sess, self.config.restore_model_path)
 
     def create_cam(self, xs, ys, logits, is_train=True):
         if is_train:
