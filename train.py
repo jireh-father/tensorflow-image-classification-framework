@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_integer('num_parallel_readers', 4, "num_parallel_readers")
 tf.app.flags.DEFINE_boolean('cache_data', False, "cache_data")
 
 tf.app.flags.DEFINE_string('log_dir',
-                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "checkpoint"),
+                           os.path.join(os.path.dirname(os.path.realpath(__file__)), "results"),
                            "save dir")
 
 tf.app.flags.DEFINE_integer('keep_checkpoint_max', 5, "keep_checkpoint_max")
@@ -164,7 +164,7 @@ class Dict2Obj(object):
 
 def make_train_key(base_dir, flags):
     now = datetime.now().strftime('%Y%m%d%H%M%S')
-    return "%s/%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
+    return "%s_%s_%s_%s_batchsize_%d_epoch_%d_%s" % (
         base_dir, flags.dataset_name, flags.model_name, flags.optimizer, flags.batch_size, flags.epoch, now)
 
 
@@ -200,7 +200,7 @@ else:
         base_dir = FLAGS.log_dir
         if not os.path.isabs(FLAGS.log_dir):
             base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
-        base_dir = base_dir + "_" + start_time
+        base_dir = os.path.join(base_dir, start_time)
         args_obj = Dict2Obj(args)
         train_key = make_train_key(base_dir, args_obj)
         if not os.path.isdir(train_key):

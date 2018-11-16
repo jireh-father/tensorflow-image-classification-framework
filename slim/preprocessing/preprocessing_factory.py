@@ -15,6 +15,7 @@
 """Contains a factory for building various models."""
 
 from slim.preprocessing import inception_preprocessing
+from slim.preprocessing import inception_preprocessing_v2
 from slim.preprocessing import lenet_preprocessing
 from slim.preprocessing import vgg_preprocessing
 from slim.preprocessing import cifarnet_preprocessing
@@ -43,6 +44,7 @@ preprocessing_fn_map = {
     'vgg_a': vgg_preprocessing,
     'vgg_16': vgg_preprocessing,
     'vgg_19': vgg_preprocessing,
+    'inception_center_crop': inception_preprocessing_v2
 }
 
 
