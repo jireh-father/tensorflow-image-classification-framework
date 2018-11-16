@@ -161,10 +161,12 @@ def make_tfrecord(dataset_name, dataset_dir, train_fraction=0.9, num_channels=3,
     validation_filenames = photo_filenames[num_train:]
     class_names_to_ids = dict(zip(class_names, range(len(class_names))))
     # First, convert the training and validation sets.
-    _convert_dataset(dataset_name, 'train', training_filenames, class_names_to_ids, dataset_dir, num_shards,
-                     num_channels)
-    _convert_dataset(dataset_name, 'validation', validation_filenames, class_names_to_ids, dataset_dir, num_shards,
-                     num_channels)
+    if len(training_filenames) > 0:
+        _convert_dataset(dataset_name, 'train', training_filenames, class_names_to_ids, dataset_dir, num_shards,
+                         num_channels)
+    if len(validation_filenames) > 0:
+        _convert_dataset(dataset_name, 'validation', validation_filenames, class_names_to_ids, dataset_dir, num_shards,
+                         num_channels)
 
     # Finally, write the labels file:
     labels_to_class_names = dict(zip(range(len(class_names)), class_names))

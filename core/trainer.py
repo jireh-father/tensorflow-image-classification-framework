@@ -402,7 +402,7 @@ class Trainer:
 
     def restore_model(self):
         if self.config.restore_model_path and len(
-          glob.glob(self.config.restore_model_path + ".data-00000-of-00001")) > 0:
+          glob.glob(os.path.join(self.config.restore_model_path, "*data-00000-of-00001"))) > 0:
             print("Restore model! %s" % self.config.restore_model_path)
             self.saver.restore(self.sess, tf.train.latest_checkpoint(self.config.restore_model_path))
             # self.saver.restore(self.sess, self.config.restore_model_path)
