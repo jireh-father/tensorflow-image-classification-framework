@@ -60,6 +60,9 @@ class Trainer:
         with tf.name_scope(self.config.model_name):
             self.make_dataset()
 
+            if not self.config.train and not self.config.validation:
+                return
+
             self.init_config()
 
             self.init_model()
