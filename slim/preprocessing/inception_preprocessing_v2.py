@@ -246,7 +246,7 @@ def preprocess_for_train(image, height, width, bbox,
 
 
 def preprocess_for_eval(image, height, width,
-                        central_fraction=0.875, scope=None):
+                        central_fraction=0.5, scope=None):
     """Prepare one image for evaluation.
 
     If height and width are specified it would output an image with that size by
