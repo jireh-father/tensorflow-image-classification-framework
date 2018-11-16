@@ -59,7 +59,7 @@ class Trainer:
     def run(self):
         with tf.name_scope(self.config.model_name):
             self.make_dataset()
-            return
+
             self.init_config()
 
             self.init_model()
