@@ -57,6 +57,7 @@ class Trainer:
         self.class_weights_ph = None
 
     def run(self):
+        tf.logging.set_verbosity(tf.logging.INFO)
         with tf.name_scope(self.config.model_name):
             self.make_dataset()
 
