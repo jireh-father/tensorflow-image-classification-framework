@@ -48,6 +48,9 @@ def build_model(class_weights_ph, config):
             logits = model_result
             end_points = None
 
+    if not config.train and config.validation:
+        return inputs, labels, logits, end_points, is_training, global_step, default_last_conv_name,
+
     ops = None
     if hasattr(config, 'loss_file'):
         loss_file = config.loss_file
