@@ -58,49 +58,49 @@ class Trainer:
 
     def run(self):
         tf.logging.set_verbosity(tf.logging.INFO)
-        with tf.name_scope(self.config.model_name):
-            self.make_dataset()
+        # with tf.name_scope(self.config.model_name):
+        self.make_dataset()
 
-            if not self.config.train and not self.config.validation:
-                return
+        if not self.config.train and not self.config.validation:
+            return
 
-            self.init_config()
+        self.init_config()
 
-            self.init_model()
+        self.init_model()
 
-            self.init_dataset()
+        self.init_dataset()
 
-            self.summary()
+        self.summary()
 
-            self.init_session()
+        self.init_session()
 
-            self.restore_model()
+        self.restore_model()
 
-            stop = False
-            for epoch in range(self.config.epoch):
-                if self.config.train:
-                    stop = self.train(epoch)
+        stop = False
+        for epoch in range(self.config.epoch):
+            if self.config.train:
+                stop = self.train(epoch)
 
-                if self.config.validation:
-                    self.validate(epoch)
+            if self.config.validation:
+                self.validate(epoch)
 
-                    if epoch % self.config.validation_embed_visualization_interval == 0 and self.validation_embed_activations is not None:
-                        embedding.add_embedding(self.validation_projector_config, sess=self.sess,
-                                                embedding_list=[self.validation_embed_activations],
-                                                embedding_path=self.validation_embed_dir,
-                                                image_size=self.config.input_size,
-                                                channel=self.config.num_channel, labels=self.validation_embed_labels,
-                                                prefix="epoch" + str(epoch))
+                if epoch % self.config.validation_embed_visualization_interval == 0 and self.validation_embed_activations is not None:
+                    embedding.add_embedding(self.validation_projector_config, sess=self.sess,
+                                            embedding_list=[self.validation_embed_activations],
+                                            embedding_path=self.validation_embed_dir,
+                                            image_size=self.config.input_size,
+                                            channel=self.config.num_channel, labels=self.validation_embed_labels,
+                                            prefix="epoch" + str(epoch))
 
-                    if not self.config.train:
-                        break
-                if self.config.train and stop:
+                if not self.config.train:
                     break
-            if self.config.validation and self.config.use_validation_embed_visualization and self.validation_embed_dataset is not None:
-                embedding.write_embedding(self.validation_projector_config, self.sess, self.validation_embed_dataset,
-                                          embedding_path=self.validation_embed_dir,
-                                          image_size=self.config.input_size, channel=self.config.num_channel,
-                                          labels=self.validation_embed_labels)
+            if self.config.train and stop:
+                break
+        if self.config.validation and self.config.use_validation_embed_visualization and self.validation_embed_dataset is not None:
+            embedding.write_embedding(self.validation_projector_config, self.sess, self.validation_embed_dataset,
+                                      embedding_path=self.validation_embed_dir,
+                                      image_size=self.config.input_size, channel=self.config.num_channel,
+                                      labels=self.validation_embed_labels)
 
     def make_dataset(self):
         if self.config.dataset_name in dataset_factory.dataset_list:
