@@ -167,7 +167,7 @@ class Trainer:
 
         if self.config.validation:
             validation_filenames = util.get_tfrecord_filenames(self.config.dataset_name, self.config.dataset_dir,
-                                                               self.config.train_name)
+                                                               self.config.validation_name)
             if not validation_filenames:
                 raise Exception("There is no tfrecord files")
 
