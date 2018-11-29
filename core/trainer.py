@@ -185,7 +185,11 @@ class Trainer:
         if model is None:
             raise Exception("There is no model name.(%s)" % self.config.model_name)
 
-        self.inputs, self.labels, self.logits, self.end_points, self.is_training, self.global_step, default_last_conv_name, ops = model
+        if not self.config.train and self.config.validation:
+            self.inputs, self.labels, self.logits, self.end_points, self.is_training, self.global_step, default_last_conv_name = model
+            ops = None
+        else:
+            self.inputs, self.labels, self.logits, self.end_points, self.is_training, self.global_step, default_last_conv_name, ops = model
         if ops:
             self.loss_op = ops["loss"]
             self.accuracy_op = ops["accuracy"]
