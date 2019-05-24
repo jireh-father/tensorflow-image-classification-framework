@@ -16,11 +16,10 @@ def get_attr(file_path, func_name):
 
 
 def count_label(label_file):
-    with open(label_file) as f:
+    with open(label_file, encoding="utf-8") as f:
         for i, l in enumerate(f):
             pass
         return i + 1
-    return None
 
 
 def get_tfrecord_filenames(dataset_name, dataset_dir, train_or_validation='train'):
