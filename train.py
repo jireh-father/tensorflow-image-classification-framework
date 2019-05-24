@@ -147,6 +147,12 @@ tf.app.flags.DEFINE_float(
     'If left as None, then moving averages are not used.')
 
 tf.app.flags.DEFINE_boolean('polynomial_learning_rate_cycle', True, "Whether to cycle of polynomial learning rate")
+tf.app.flags.DEFINE_string('checkpoint_exclude_scopes', None,
+                 'Comma-separated list of scopes of variables to exclude when restoring '
+                 'from a checkpoint.')
+
+tf.app.flags.DEFINE_string('trainable_scopes', None, 'Comma-separated list of scopes to filter the set of variables to train.'
+                                           'By default, None would train all the variables.')
 
 FLAGS = tf.app.flags.FLAGS
 FLAGS.dataset_name
