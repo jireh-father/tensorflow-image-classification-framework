@@ -77,7 +77,7 @@ class Trainer:
         self.restore_model()
 
         stop = False
-        for epoch in range(self.config.epoch):
+        for epoch in range(1, self.config.epoch + 1):
             if self.config.train:
                 stop = self.train(epoch)
 
@@ -206,6 +206,7 @@ class Trainer:
         self.sess.run(tf.global_variables_initializer())
 
         summary_dir = os.path.join(self.config.log_dir, "summary")
+        print("train_writer dir exists", os.path.isdir(summary_dir + '/train'))
         self.train_writer = tf.summary.FileWriter(summary_dir + '/train', self.sess.graph)
         self.validation_writer = tf.summary.FileWriter(summary_dir + '/validation')
         self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.config.keep_checkpoint_max)
@@ -220,7 +221,7 @@ class Trainer:
         self.train_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
-        step = 0
+        step = 1
         total_steps = self.config.num_train_sample // self.config.batch_size
         if self.config.num_train_sample % self.config.batch_size > 0:
             total_steps += 1
@@ -249,21 +250,23 @@ class Trainer:
 
                     if self.config.use_summary:
                         summary = self.sess.run(self.summary_op, feed_dict)
+                        print("train summary!", summary, global_step)
                         self.train_writer.add_summary(summary, global_step)
-                step += 1
+                
 
                 if self.config.use_train_cam and self.cam:
                     self.create_cam(batch_xs, batch_ys, logits)
 
                 if epoch % self.config.train_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx)
-                if self.config.total_steps and global_step >= self.config.total_steps:
+                if self.config.total_steps and global_step > self.config.total_steps:
                     return True
-                if self.config.steps_per_epoch and step >= self.config.steps_per_epoch:
+                if self.config.steps_per_epoch and step > self.config.steps_per_epoch:
                     break
+                step += 1
             except tf.errors.OutOfRangeError:
                 break
-        if step > 0:
+        if step > 1:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
 
@@ -295,7 +298,7 @@ class Trainer:
         self.validation_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
-        step = 0
+        step = 1
         total_steps = self.config.num_validation_sample // self.config.validation_batch_size
         if self.config.num_validation_sample % self.config.validation_batch_size > 0:
             total_steps += 1
@@ -325,17 +328,18 @@ class Trainer:
                 if self.config.use_summary:
                     summary = self.sess.run(self.summary_op, feed_dict)
                     self.validation_writer.add_summary(summary, global_step + step)
-                step += 1
+                
 
                 if self.config.use_validation_cam and self.cam:
                     self.create_cam(batch_xs, batch_ys, logits, False)
 
                 if epoch % self.config.validation_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx, False)
+                step += 1
             except tf.errors.OutOfRangeError:
                 break
 
-        if step > 0:
+        if step > 1:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
             print("%d Epoch - Validation, Avg Accuracy : %f, Avg Loss : %f" % (epoch, avg_accuracy, avg_loss))
