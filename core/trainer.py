@@ -206,7 +206,6 @@ class Trainer:
         self.sess.run(tf.global_variables_initializer())
 
         summary_dir = os.path.join(self.config.log_dir, "summary")
-        print("train_writer dir exists", os.path.isdir(summary_dir + '/train'))
         self.train_writer = tf.summary.FileWriter(summary_dir + '/train', self.sess.graph)
         self.validation_writer = tf.summary.FileWriter(summary_dir + '/validation')
         self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=self.config.keep_checkpoint_max)
@@ -250,7 +249,6 @@ class Trainer:
 
                     if self.config.use_summary:
                         summary = self.sess.run(self.summary_op, feed_dict)
-                        print("train summary!", summary, global_step)
                         self.train_writer.add_summary(summary, global_step)
                 
 
@@ -275,7 +273,6 @@ class Trainer:
                 self.summary_average(epoch, avg_accuracy, avg_loss)
 
             if epoch % self.config.save_interval == 0:
-                print("save path", self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
                 self.saver.save(self.sess, self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
 
             if self.config.use_summary:
