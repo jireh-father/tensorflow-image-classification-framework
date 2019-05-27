@@ -275,6 +275,7 @@ class Trainer:
                 self.summary_average(epoch, avg_accuracy, avg_loss)
 
             if epoch % self.config.save_interval == 0:
+                print("save path", self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
                 self.saver.save(self.sess, self.config.log_dir + "/model_epoch_%d.ckpt" % epoch, global_step)
 
             if self.config.use_summary:
