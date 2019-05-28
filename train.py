@@ -203,9 +203,10 @@ else:
             backup[key] = args[key]
             args[key] = config[key]
         backup["log_dir"] = FLAGS.log_dir
-        base_dir = FLAGS.log_dir
-        if not os.path.isabs(FLAGS.log_dir):
-            base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
+        #base_dir = FLAGS.log_dir
+        base_dir = args["log_dir"]
+        #if not os.path.isabs(FLAGS.log_dir):
+        #    base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), FLAGS.log_dir)
         base_dir = os.path.join(base_dir, start_time)
         args_obj = Dict2Obj(args)
         train_key = make_train_key(base_dir, args_obj)

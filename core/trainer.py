@@ -11,7 +11,6 @@ from tensorflow.contrib.tensorboard.plugins import projector
 from visualizer.grad_cam_plus_plus import GradCamPlusPlus
 from visualizer import embedding
 
-
 class Trainer:
     def __init__(self, config):
         self.config = config
@@ -77,7 +76,7 @@ class Trainer:
         self.restore_model()
 
         stop = False
-        for epoch in range(self.config.epoch):
+        for epoch in range(1, self.config.epoch + 1):
             if self.config.train:
                 stop = self.train(epoch)
 
@@ -220,7 +219,7 @@ class Trainer:
         self.train_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
-        step = 0
+        step = 1
         total_steps = self.config.num_train_sample // self.config.batch_size
         if self.config.num_train_sample % self.config.batch_size > 0:
             total_steps += 1
@@ -250,20 +249,21 @@ class Trainer:
                     if self.config.use_summary:
                         summary = self.sess.run(self.summary_op, feed_dict)
                         self.train_writer.add_summary(summary, global_step)
-                step += 1
+                
 
                 if self.config.use_train_cam and self.cam:
                     self.create_cam(batch_xs, batch_ys, logits)
 
                 if epoch % self.config.train_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx)
-                if self.config.total_steps and global_step >= self.config.total_steps:
+                if self.config.total_steps and global_step > self.config.total_steps:
                     return True
-                if self.config.steps_per_epoch and step >= self.config.steps_per_epoch:
+                if self.config.steps_per_epoch and step > self.config.steps_per_epoch:
                     break
+                step += 1
             except tf.errors.OutOfRangeError:
                 break
-        if step > 0:
+        if step > 1:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
 
@@ -295,7 +295,7 @@ class Trainer:
         self.validation_dataset.init(self.config.input_size)
         total_accuracy = .0
         total_loss = .0
-        step = 0
+        step = 1
         total_steps = self.config.num_validation_sample // self.config.validation_batch_size
         if self.config.num_validation_sample % self.config.validation_batch_size > 0:
             total_steps += 1
@@ -325,17 +325,18 @@ class Trainer:
                 if self.config.use_summary:
                     summary = self.sess.run(self.summary_op, feed_dict)
                     self.validation_writer.add_summary(summary, global_step + step)
-                step += 1
+                
 
                 if self.config.use_validation_cam and self.cam:
                     self.create_cam(batch_xs, batch_ys, logits, False)
 
                 if epoch % self.config.validation_embed_visualization_interval == 0:
                     self.add_embedding(batch_xs, batch_ys, logits, pred_idx, False)
+                step += 1
             except tf.errors.OutOfRangeError:
                 break
 
-        if step > 0:
+        if step > 1:
             avg_accuracy = float(total_accuracy) / step
             avg_loss = float(total_loss) / step
             print("%d Epoch - Validation, Avg Accuracy : %f, Avg Loss : %f" % (epoch, avg_accuracy, avg_loss))
@@ -406,8 +407,7 @@ class Trainer:
                 self.validation_embed_activations = np.append(logits, self.validation_embed_activations, axis=0)
 
     def restore_model(self):
-        if self.config.restore_model_path and len(
-          glob.glob(os.path.join(self.config.restore_model_path, "*data-00000-of-00001"))) > 0:
+        if self.config.restore_model_path:
             print("Restore model! %s" % self.config.restore_model_path)
             self.saver.restore(self.sess, tf.train.latest_checkpoint(self.config.restore_model_path))
             # self.saver.restore(self.sess, self.config.restore_model_path)
@@ -475,6 +475,7 @@ class Trainer:
 
 
 def main(config):
+    tf.logging.set_verbosity(tf.logging.INFO)
     trainer = Trainer(config)
     try:
         trainer.run()
