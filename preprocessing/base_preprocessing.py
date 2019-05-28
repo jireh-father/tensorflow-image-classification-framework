@@ -17,4 +17,6 @@ def preprocessing(image, w, h, config, is_training):
     image = tf.subtract(image, 0.5)
     image = tf.multiply(image, 2.0)
     # top : 1/4, bot : 1/6, side : 1/5
+
     return image
+

@@ -18,3 +18,18 @@ def preprocessing(image, w, h, config, is_training):
     image = tf.multiply(image, 2.0)
     # top : 1/4, bot : 1/6, side : 1/5
     return image
+
+
+def preprocessing_inference(image, w, h, config):
+    image = tf.cast(image, tf.float32)
+
+    image = tf.expand_dims(image, 0)
+    image = tf.image.resize_bilinear(image, [w, h], align_corners=False)
+    image = tf.squeeze(image, [0])
+
+
+    image = tf.divide(image, 255.0)
+    image = tf.subtract(image, 0.5)
+    image_decoded = tf.multiply(image, 2.0)
+
+    return image_decoded

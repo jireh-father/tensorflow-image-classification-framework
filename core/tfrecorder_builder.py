@@ -51,6 +51,18 @@ def _get_filenames_and_classes(dataset_dir):
 
     return photo_filenames, sorted(class_names)
 
+def get_filenames(dataset_dir):
+    photo_filenames = []
+    if platform.system() == 'Windows':
+        exts = ["jpg", "jpeg"]
+    else:
+        exts = ["jpg", "jpeg", "JPG", "JPEG"]
+    for ext in exts:
+        for path in glob.glob(os.path.join(dataset_dir, "*.%s" % ext)):
+            # path = os.path.join(directory, filename)
+            photo_filenames.append(path)
+
+    return photo_filenames
 
 class ImageReader(object):
     """Helper class that provides TensorFlow image coding utilities."""
