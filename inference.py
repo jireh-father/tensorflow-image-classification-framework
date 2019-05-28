@@ -44,15 +44,17 @@ args = {}
 try:
     iterator = iter(FLAGS)
     for key in iterator:
-        print(key)
         args[key] = getattr(FLAGS, key)
 except TypeError:
     for key in FLAGS.__dict__["__flags"]:
-        print(key)
         args[key] = FLAGS.__dict__["__flags"][key]
 
 start_time = datetime.now().strftime('%Y%m%d%H%M%S')
-print(args)
+class Dict2Obj(object):
+    def __init__(self, dictionary):
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
+args = Dict2Obj(args)
 log_dir = args.log_dir + "/" + start_time
 
 tf.reset_default_graph()
