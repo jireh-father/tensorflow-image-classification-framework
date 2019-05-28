@@ -65,6 +65,7 @@ nums_samples = len(filenames)
 
 
 label_map = json.load(open(args.label_path))
+args.num_class = len(label_map)
 
 model = model_factory.build_model(None, args)
 
