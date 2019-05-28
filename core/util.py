@@ -2,7 +2,7 @@ import importlib
 import glob
 import os
 import tensorflow as tf
-
+import sys
 
 def get_attr(file_path, func_name):
     try:
@@ -16,10 +16,17 @@ def get_attr(file_path, func_name):
 
 
 def count_label(label_file):
-    with open(label_file, encoding="utf-8") as f:
-        for i, l in enumerate(f):
-            pass
-        return i + 1
+    if sys.version_info[0] < 3:
+        with open(label_file) as f:
+            for i, l in enumerate(f):
+                pass
+            return i + 1
+    else:
+        with open(label_file, encoding="utf-8") as f:
+            for i, l in enumerate(f):
+                pass
+            return i + 1
+
 
 
 def get_tfrecord_filenames(dataset_name, dataset_dir, train_or_validation='train'):
