@@ -44,9 +44,11 @@ args = {}
 try:
     iterator = iter(FLAGS)
     for key in iterator:
+        print(key)
         args[key] = getattr(FLAGS, key)
 except TypeError:
     for key in FLAGS.__dict__["__flags"]:
+        print(key)
         args[key] = FLAGS.__dict__["__flags"][key]
 
 start_time = datetime.now().strftime('%Y%m%d%H%M%S')
