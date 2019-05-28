@@ -6,7 +6,6 @@ import json
 from factory import model_factory
 from visualizer.grad_cam_plus_plus import GradCamPlusPlus
 from slim.preprocessing import preprocessing_factory
-import numpy as np
 
 
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
@@ -30,6 +29,7 @@ tf.app.flags.DEFINE_boolean('use_weighted_loss', False, "use_weighted_loss")
 tf.app.flags.DEFINE_boolean('train', False, "train")
 tf.app.flags.DEFINE_boolean('use_regularizer', False, "use_regularizer")
 tf.app.flags.DEFINE_integer('num_preprocessing_threads', 4, "num_preprocessing_threads")
+tf.app.flags.DEFINE_string('output', './inference_result.json', "output")
 
 tf.app.flags.DEFINE_integer('top_k', 5, "top_k")
 
@@ -104,8 +104,7 @@ tf_config = tf.ConfigProto()
 tf_config.gpu_options.allow_growth = True
 sess = tf.Session(config=tf_config)
 
-query_vecs = np.zeros((len(queries), int(args.embedding_size)))
-
+inference_results = {}
 steps = int(nums_samples / args.batch_size)
 if nums_samples % args.batch_size > 0:
     steps += 1
@@ -113,8 +112,8 @@ for i in range(steps):
     batch_imgs = sess.run(next_batch)
     feed_dict = {inputs: batch_imgs, is_training: False}
     tmp_logits = sess.run(logits, feed_dict=feed_dict)
-    top_k_args = tmp_logits.argsort()[-args.top_k:][::-1]
-    for j, tmp_qe in enumerate(tmp_query_vecs):
-        query_vecs[i * args.eval_batch_size + j] = tmp_qe
+    for j, tmp_logit in enumerate(tmp_logits):
+        top_k_args = tmp_logit.argsort()[-args.top_k:][::-1]
+        inference_results[filenames[j + i * args.batch_size]] = top_k_args
 
-
+json.dump(inference_results, open(args.output, "w+"))
