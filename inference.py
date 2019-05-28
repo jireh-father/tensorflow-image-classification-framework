@@ -81,7 +81,6 @@ cam = GradCamPlusPlus(logits, end_points[default_last_conv_name],
                            inputs, is_training)
 
 def parse_function(filename):
-    print(filename)
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_jpeg(image_string, channels=args.num_channel)
 
@@ -101,7 +100,6 @@ def parse_function(filename):
 
     return image_decoded
 
-print(filenames)
 dataset = tf.data.Dataset.from_tensor_slices(filenames)
 dataset = dataset.map(parse_function, num_parallel_calls=args.num_preprocessing_threads)
 dataset = dataset.batch(args.batch_size)
