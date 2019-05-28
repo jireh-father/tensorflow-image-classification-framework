@@ -52,6 +52,7 @@ except TypeError:
         args[key] = FLAGS.__dict__["__flags"][key]
 
 start_time = datetime.now().strftime('%Y%m%d%H%M%S')
+print(args)
 log_dir = args.log_dir + "/" + start_time
 
 tf.reset_default_graph()
