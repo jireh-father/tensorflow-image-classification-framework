@@ -29,7 +29,6 @@ tf.app.flags.DEFINE_boolean('use_weighted_loss', False, "use_weighted_loss")
 tf.app.flags.DEFINE_boolean('train', False, "train")
 tf.app.flags.DEFINE_boolean('use_regularizer', False, "use_regularizer")
 tf.app.flags.DEFINE_integer('num_preprocessing_threads', 4, "num_preprocessing_threads")
-tf.app.flags.DEFINE_string('output', './inference_result.json', "output")
 
 tf.app.flags.DEFINE_integer('top_k', 5, "top_k")
 
@@ -106,7 +105,7 @@ sess = tf.Session(config=tf_config)
 
 sess.run(tf.global_variables_initializer())
 
-summary_dir = os.path.join(args.log_dir, "summary")
+summary_dir = os.path.join(log_dir, "summary")
 writer = tf.summary.FileWriter(summary_dir, sess.graph)
 saver = tf.train.Saver(tf.global_variables())
 saver.restore(sess, tf.train.latest_checkpoint(args.restore_model_path))
@@ -123,4 +122,4 @@ for i in range(steps):
         top_k_args = tmp_logit.argsort()[-args.top_k:][::-1]
         inference_results[filenames[j + i * args.batch_size]] = top_k_args
 
-json.dump(inference_results, open(args.output, "w+"))
+json.dump(inference_results, open(os.path.join(log_dir, 'inference_result.json'), "w+"))
