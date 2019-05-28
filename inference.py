@@ -31,6 +31,8 @@ tf.app.flags.DEFINE_boolean('use_regularizer', False, "use_regularizer")
 tf.app.flags.DEFINE_integer('num_preprocessing_threads', 4, "num_preprocessing_threads")
 
 tf.app.flags.DEFINE_integer('top_k', 5, "top_k")
+tf.app.flags.DEFINE_float(
+    'weight_decay', 0.00004, 'The weight decay on the model weights.')
 
 
 
