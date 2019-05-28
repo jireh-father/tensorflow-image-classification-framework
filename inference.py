@@ -99,7 +99,8 @@ def parse_function(filename):
     
 
     return image_decoded
-
+print(filenames)
+print("inference file count", len(filenames))
 dataset = tf.data.Dataset.from_tensor_slices(filenames)
 dataset = dataset.map(parse_function, num_parallel_calls=args.num_preprocessing_threads)
 dataset = dataset.batch(args.batch_size)
@@ -127,6 +128,7 @@ for i in range(steps):
     tmp_logits = sess.run(logits, feed_dict=feed_dict)
     for j, tmp_logit in enumerate(tmp_logits):
         top_k_args = tmp_logit.argsort()[-args.top_k:][::-1]
-        inference_results[filenames[j + i * args.batch_size]] = top_k_args
+        inference_results[filenames[j + i * args.batch_size]] = list(top_k_args)
+        print(filenames[j + i * args.batch_size], top_k_args)
 
 json.dump(inference_results, open(os.path.join(log_dir, 'inference_result.json'), "w+"))
