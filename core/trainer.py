@@ -11,7 +11,6 @@ from tensorflow.contrib.tensorboard.plugins import projector
 from visualizer.grad_cam_plus_plus import GradCamPlusPlus
 from visualizer import embedding
 
-
 class Trainer:
     def __init__(self, config):
         self.config = config
@@ -408,8 +407,7 @@ class Trainer:
                 self.validation_embed_activations = np.append(logits, self.validation_embed_activations, axis=0)
 
     def restore_model(self):
-        if self.config.restore_model_path and len(
-          glob.glob(os.path.join(self.config.restore_model_path, "*data-00000-of-00001"))) > 0:
+        if self.config.restore_model_path:
             print("Restore model! %s" % self.config.restore_model_path)
             self.saver.restore(self.sess, tf.train.latest_checkpoint(self.config.restore_model_path))
             # self.saver.restore(self.sess, self.config.restore_model_path)
@@ -477,6 +475,7 @@ class Trainer:
 
 
 def main(config):
+    tf.logging.set_verbosity(tf.logging.INFO)
     trainer = Trainer(config)
     try:
         trainer.run()
