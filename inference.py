@@ -104,6 +104,13 @@ tf_config = tf.ConfigProto()
 tf_config.gpu_options.allow_growth = True
 sess = tf.Session(config=tf_config)
 
+sess.run(tf.global_variables_initializer())
+
+summary_dir = os.path.join(args.log_dir, "summary")
+writer = tf.summary.FileWriter(summary_dir, sess.graph)
+saver = tf.train.Saver(tf.global_variables())
+saver.restore(sess, tf.train.latest_checkpoint(args.restore_model_path))
+
 inference_results = {}
 steps = int(nums_samples / args.batch_size)
 if nums_samples % args.batch_size > 0:
