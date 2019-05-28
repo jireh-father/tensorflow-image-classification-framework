@@ -35,7 +35,7 @@ tf.app.flags.DEFINE_integer('top_k', 5, "top_k")
 
 
 FLAGS = tf.app.flags.FLAGS
-FLAGS.dataset_name
+FLAGS.dataset_dir
 
 if hasattr(FLAGS, "mark_as_parsed"):
     FLAGS.mark_as_parsed()
