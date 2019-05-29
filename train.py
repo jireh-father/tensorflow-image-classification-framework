@@ -58,6 +58,7 @@ tf.app.flags.DEFINE_boolean('use_prediction_for_embed_visualization', False, "us
 tf.app.flags.DEFINE_string('preprocessing_name', None, "preprocessing name")
 tf.app.flags.DEFINE_boolean('use_regularizer', True, "use_regularizer")
 tf.app.flags.DEFINE_integer('input_size', None, "input_size")
+tf.app.flags.DEFINE_boolean('is_inference', False, "is_inference")
 ######################
 # Optimization Flags #
 ######################
