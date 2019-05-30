@@ -130,6 +130,6 @@ for i in range(steps):
         top_k_args = tmp_logit.argsort()[-args.top_k:][::-1]
         top_k_labels = [int(v) for v in list(top_k_args)]
         inference_results[filenames[j + i * args.batch_size]] = [top_k_labels, tmp_logit[top_k_labels]]
-        print(filenames[j + i * args.batch_size], top_k_args)
+        print(filenames[j + i * args.batch_size], [top_k_labels, tmp_logit[top_k_labels]])
 
 json.dump(inference_results, open(os.path.join(log_dir, 'inference_result.json'), "w+"))
