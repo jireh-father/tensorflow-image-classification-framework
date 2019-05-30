@@ -131,4 +131,4 @@ for i in range(steps):
         inference_results[filenames[j + i * args.batch_size]] = [top_k_labels, top_k_labels_name, [float(v) for v in tmp_logit[top_k_labels]]]
         print(os.path.basename(filenames[j + i * args.batch_size]), [top_k_labels, top_k_labels_name, [float(v) for v in tmp_logit[top_k_labels]]])
 
-json.dump(inference_results, open(os.path.join(log_dir, 'inference_result.json'), "w+"))
+json.dump(inference_results, open(os.path.join(args.log_dir, 'inference_result.json'), "w+"))
