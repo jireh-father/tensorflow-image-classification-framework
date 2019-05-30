@@ -6,7 +6,7 @@ import json
 from factory import model_factory
 from visualizer.grad_cam_plus_plus import GradCamPlusPlus
 from slim.preprocessing import preprocessing_factory
-
+from PIL import Image
 
 tf.app.flags.DEFINE_string('dataset_dir', "./mnist", "dataset_dir")
 tf.app.flags.DEFINE_string('label_path', "./label.json", "label_path")
@@ -60,7 +60,14 @@ log_dir = args.log_dir + "/" + start_time
 tf.reset_default_graph()
 tf.logging.set_verbosity(tf.logging.INFO)
 
-filenames = tfrecorder_builder.get_filenames(args.dataset_dir)
+tmp_filenames = tfrecorder_builder.get_filenames(args.dataset_dir)
+filenames = []
+for file in tmp_filenames:
+  try:
+    Image.open(file)
+    filenames.append(file)
+  except:
+    continue
 nums_samples = len(filenames)
 
 
