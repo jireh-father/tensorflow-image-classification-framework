@@ -125,10 +125,11 @@ if nums_samples % args.batch_size > 0:
 for i in range(steps):
     batch_imgs = sess.run(next_batch)
     feed_dict = {inputs: batch_imgs, is_training: False}
-    tmp_logits = sess.run(logits, feed_dict=feed_dict)
+    tmp_logits = sess.run(tf.nn.softmax(logits), feed_dict=feed_dict)
     for j, tmp_logit in enumerate(tmp_logits):
         top_k_args = tmp_logit.argsort()[-args.top_k:][::-1]
-        inference_results[filenames[j + i * args.batch_size]] = [int(v) for v in list(top_k_args)]
+        top_k_labels = [int(v) for v in list(top_k_args)]
+        inference_results[filenames[j + i * args.batch_size]] = [top_k_labels, tmp_logit[top_k_labels]]
         print(filenames[j + i * args.batch_size], top_k_args)
 
 json.dump(inference_results, open(os.path.join(log_dir, 'inference_result.json'), "w+"))
