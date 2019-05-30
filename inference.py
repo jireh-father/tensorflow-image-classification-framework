@@ -34,8 +34,6 @@ tf.app.flags.DEFINE_integer('top_k', 5, "top_k")
 tf.app.flags.DEFINE_float(
     'weight_decay', 0.00004, 'The weight decay on the model weights.')
 
-
-
 FLAGS = tf.app.flags.FLAGS
 FLAGS.dataset_dir
 
