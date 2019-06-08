@@ -109,9 +109,9 @@ print("inference file count", len(filenames))
 
 
 filenames_pl = tf.placeholder(tf.string, shape=[None], name="filenames")
-dataset = tf.data.TFRecordDataset(filenames_pl)
+# dataset = tf.data.TFRecordDataset(filenames_pl)
 
-# dataset = tf.data.Dataset.from_tensor_slices(filenames)
+dataset = tf.data.Dataset.from_tensor_slices(filenames_pl)
 dataset = dataset.map(parse_function, num_parallel_calls=args.num_preprocessing_threads)
 dataset = dataset.batch(args.batch_size)
 # iterator = dataset.make_one_shot_iterator()
