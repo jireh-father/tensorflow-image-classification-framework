@@ -109,9 +109,9 @@ print("inference file count", len(filenames))
 
 
 filenames_pl = tf.placeholder(tf.string, shape=[None], name="filenames")
-dataset = tf.data.TFRecordDataset(filenames_pl)
+# dataset = tf.data.TFRecordDataset(filenames_pl)
 
-# dataset = tf.data.Dataset.from_tensor_slices(filenames)
+dataset = tf.data.Dataset.from_tensor_slices(filenames)
 dataset = dataset.map(parse_function, num_parallel_calls=args.num_preprocessing_threads)
 dataset = dataset.batch(args.batch_size)
 # iterator = dataset.make_one_shot_iterator()
@@ -135,7 +135,9 @@ if nums_samples % args.batch_size > 0:
     steps += 1
     
 
-sess.run(iterator.initializer, feed_dict={filenames_pl: filenames})
+sess.run(iterator.initializer)
+
+# sess.run(iterator.initializer, feed_dict={filenames_pl: filenames})
 scores = None
 import numpy as np
 while True:
